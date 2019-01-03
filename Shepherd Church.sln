@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shepherd Church", "FireTV\Shepherd Church.csproj", "{CA7D85E7-AFB6-4F44-B978-634E630BB347}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FireTV", "FireTV\FireTV.csproj", "{CA7D85E7-AFB6-4F44-B978-634E630BB347}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppleTV", "AppleTV\AppleTV.csproj", "{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,18 @@ Global
 		{CA7D85E7-AFB6-4F44-B978-634E630BB347}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{CA7D85E7-AFB6-4F44-B978-634E630BB347}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{CA7D85E7-AFB6-4F44-B978-634E630BB347}.Release|iPhoneSimulator.Deploy.0 = Release|Any CPU
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Debug|Any CPU.ActiveCfg = Debug|iPhoneSimulator
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Debug|Any CPU.Build.0 = Debug|iPhoneSimulator
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Debug|iPhone.ActiveCfg = Debug|iPhone
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Debug|iPhone.Build.0 = Debug|iPhone
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Debug|iPhoneSimulator.ActiveCfg = Debug|iPhoneSimulator
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Debug|iPhoneSimulator.Build.0 = Debug|iPhoneSimulator
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Release|Any CPU.ActiveCfg = Release|iPhone
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Release|Any CPU.Build.0 = Release|iPhone
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Release|iPhone.ActiveCfg = Release|iPhone
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Release|iPhone.Build.0 = Release|iPhone
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Release|iPhoneSimulator.ActiveCfg = Release|iPhoneSimulator
+		{8F1AEAD1-CD2E-4EB2-836D-AE756FD7710A}.Release|iPhoneSimulator.Build.0 = Release|iPhoneSimulator
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
