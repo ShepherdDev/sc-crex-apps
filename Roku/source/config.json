@@ -1,6 +1,5 @@
 {
-  "ApplicationRootUrl": "https://www.shepherdchurch.com/Webhooks/Lava.ashx/crex/sc/main.json",
-  "LoadingSpinner": "pkg:/images/spinner.png",
+  "ApplicationRootUrl": "https://rock.shepherdchurch.net/api/crex/page/1237",
   "VideoPlayer": {
     "FilledBarBlendColor": "0x43B2E5FF"
   }
