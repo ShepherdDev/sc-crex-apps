@@ -1,0 +1,36 @@
+{%- comment -%}
+  Crex Content Channel Item Children (page 1243, block 2137) - Template
+  Every string goes through ToJSON, which emits a complete, quoted, fully
+  escaped JSON string (handles " \ newlines tabs etc). Do NOT wrap ToJSON
+  output in quotes. The comma is written BEFORE each item (not after) so
+  there is never a trailing comma, even when items are skipped.
+{%- endcomment -%}
+{%- assign sep = '' -%}
+[
+{%- for Item in Items -%}
+  {%- assign hlsVideo = Item | Attribute:'HLSVideo','RawValue' -%}
+  {%- if hlsVideo == '' -%}{%- continue -%}{%- endif -%}
+  {%- assign imageGuid = Item | Attribute:'PosterImage','RawValue' -%}
+  {%- if imageGuid == empty -%}
+    {%- assign imageGuid = ParentItem | Attribute:'PosterImage','RawValue' -%}
+  {%- endif -%}
+  {%- assign title = Item.Title | Default:'' -%}
+  {%- assign description = Item.Content | StripHtml | HtmlDecode | Trim | Default:'' -%}
+  {%- assign speaker = Item | Attribute:'Speaker' | Default:'' -%}
+  {{ sep }}{
+    "Title": {{ title | ToJSON }},
+    "Description": {{ description | ToJSON }},
+    "DetailLeft": "{{ Item.StartDateTime | Date:'M/d/yyyy' }}",
+    "DetailRight": {{ speaker | ToJSON }},
+    "Image": {
+      {%- if imageGuid != empty -%}
+      "HD": "/GetImage.ashx?Guid={{ imageGuid }}&maxwidth=1280",
+      "FHD": "/GetImage.ashx?Guid={{ imageGuid }}&maxwidth=1920",
+      "UHD": "/GetImage.ashx?Guid={{ imageGuid }}"
+      {%- endif -%}
+    },
+    "ActionUrl": "/api/crex/page/{{ LinkedPages.DetailPageId }}?ContentItemId={{ Item.Id }}"
+  }
+  {%- assign sep = ',' -%}
+{%- endfor -%}
+]
