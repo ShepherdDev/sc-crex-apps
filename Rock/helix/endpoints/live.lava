@@ -1,0 +1,5 @@
+{%- comment -%}
+  GET /tv/live  (Crex "Video")  -- the Resi live stream URL from the app Configuration.
+  Enabled Lava Commands: (none)
+{%- endcomment -%}
+{ "Template": "Video", "Data": {{ ConfigurationRigging.LiveStreamUrl | ToJSON }}, "IsLive": true, "RequiredCrexVersion": null }

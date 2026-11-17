@@ -1,0 +1,15 @@
+{%- comment -%}
+  GET /tv/service-times  (Crex "Image")  -- update the image by changing
+  ServiceTimesImageGuid in the app Configuration (upload in File Manager / Binary Files).
+  Enabled Lava Commands: (none)
+{%- endcomment -%}
+{%- assign img = ConfigurationRigging.ServiceTimesImageGuid -%}
+{
+  "Template": "Image",
+  "Data": {
+    "HD": "/GetImage.ashx?Guid={{ img }}&width=1280",
+    "FHD": "/GetImage.ashx?Guid={{ img }}&width=1920",
+    "UHD": "/GetImage.ashx?Guid={{ img }}"
+  },
+  "RequiredCrexVersion": null
+}

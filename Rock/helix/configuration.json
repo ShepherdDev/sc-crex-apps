@@ -1,0 +1,6 @@
+{
+  "BaseUrl": "/api/v2/lava-app/1/tv",
+  "LiveStreamUrl": "https://resi.media/GZsMuo/Manifest.m3u8",
+  "HomeBackgroundGuid": "c9ee4f9f-0a5e-4f93-908b-360c0668e40c",
+  "ServiceTimesImageGuid": "3856862b-7bbb-4fd4-b23b-71bd0ae48fd8"
+}

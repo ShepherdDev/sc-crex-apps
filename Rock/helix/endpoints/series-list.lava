@@ -1,0 +1,63 @@
+{%- comment -%}
+  GET /tv/series-list?channel=sermons|lifegroups  (Crex "PosterList")
+  Every series that has at least one published video, newest first.
+  Channels: sermons = 28 (Shepherd Church Sermons), lifegroups = 26 (Life Group Video Series)
+  Attribute Ids: 8885 = series PosterImage, 8888 = message HLSVideo
+  Enabled Lava Commands: Sql
+{%- endcomment -%}
+{%- assign base = ConfigurationRigging.BaseUrl -%}
+{%- if QueryString.channel == 'lifegroups' -%}
+  {%- assign channelId = 26 -%}{%- assign listTitle = 'Life Groups' -%}
+{%- else -%}
+  {%- assign channelId = 28 -%}{%- assign listTitle = 'Archives' -%}
+{%- endif -%}
+{%- sql channelId:'{{ channelId }}' -%}
+SELECT S.[Id], S.[Title], S.[Content], S.[StartDateTime], P.[Value] AS [Poster]
+FROM [ContentChannelItem] S
+LEFT JOIN [AttributeValue] P ON P.[EntityId] = S.[Id] AND P.[AttributeId] = 8885
+WHERE S.[ContentChannelId] = @channelId
+  AND S.[StartDateTime] <= GETDATE()
+  AND EXISTS (
+    SELECT 1
+    FROM [ContentChannelItemAssociation] A
+    INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
+    INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+    WHERE A.[ContentChannelItemId] = S.[Id]
+      AND C.[StartDateTime] <= GETDATE()
+      AND ISNULL(H.[Value], '') <> ''
+  )
+ORDER BY S.[StartDateTime] DESC
+{%- endsql -%}
+{%- assign bg = results | First | Property:'Poster' -%}
+{%- assign sep = '' -%}
+{
+  "Template": "PosterList",
+  "Data": {
+    "Title": {{ listTitle | ToJSON }},
+    "BackgroundImage": {%- if bg != empty and bg != null -%}{
+      "HD": "/GetImage.ashx?Guid={{ bg }}&width=1280",
+      "FHD": "/GetImage.ashx?Guid={{ bg }}&width=1920",
+      "UHD": "/GetImage.ashx?Guid={{ bg }}"
+    }{%- else -%}null{%- endif -%},
+    "Items": [
+{%- for row in results -%}
+  {%- assign description = row.Content | StripHtml | HtmlDecode | Trim | Default:'' -%}
+  {{ sep }}{
+    "Title": {{ row.Title | Default:'' | ToJSON }},
+    "Description": {{ description | ToJSON }},
+    "DetailLeft": "{{ row.StartDateTime | Date:'M/d/yyyy' }}",
+    "DetailRight": "",
+    "Image": {%- if row.Poster != empty and row.Poster != null -%}{
+      "HD": "/GetImage.ashx?Guid={{ row.Poster }}&maxwidth=1280",
+      "FHD": "/GetImage.ashx?Guid={{ row.Poster }}&maxwidth=1920",
+      "UHD": "/GetImage.ashx?Guid={{ row.Poster }}"
+    }{%- else -%}null{%- endif -%},
+    "Action": null,
+    "ActionUrl": "{{ base }}/series?id={{ row.Id | ToIdHash }}"
+  }
+  {%- assign sep = ',' -%}
+{%- endfor -%}
+    ]
+  },
+  "RequiredCrexVersion": null
+}

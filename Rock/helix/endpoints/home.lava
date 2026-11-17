@@ -1,0 +1,38 @@
+{%- comment -%}
+  GET /tv/home  (Crex "Menu")
+  Shows "Watch Live" while a schedule in the live-stream category (458) is
+  active, otherwise "Service Times". Enabled Lava Commands: RockEntity
+{%- endcomment -%}
+{%- assign cfg = ConfigurationRigging -%}
+{%- assign base = cfg.BaseUrl -%}
+{%- assign bg = cfg.HomeBackgroundGuid -%}
+{%- assign isLive = false -%}
+{%- schedule where:'CategoryId == 458' -%}
+  {%- for s in scheduleItems -%}
+    {%- assign active = s | Property:'IsScheduleActive' -%}
+    {%- if s.IsActive and active == true -%}{%- assign isLive = true -%}{%- endif -%}
+  {%- endfor -%}
+{%- endschedule -%}
+{
+  "Template": "Menu",
+  "Data": {
+    "BackgroundImage": {
+      "HD": "/GetImage.ashx?Guid={{ bg }}&width=1280",
+      "FHD": "/GetImage.ashx?Guid={{ bg }}&width=1920",
+      "UHD": "/GetImage.ashx?Guid={{ bg }}"
+    },
+    "Buttons": [
+      {%- if isLive -%}
+      { "Title": "Watch Live", "ActionUrl": "{{ base }}/live", "Action": null },
+      {%- else -%}
+      { "Title": "Service Times", "ActionUrl": "{{ base }}/service-times", "Action": null },
+      {%- endif -%}
+      { "Title": "Current Series", "ActionUrl": "{{ base }}/series?id=current&channel=sermons", "Action": null },
+      { "Title": "Archives", "ActionUrl": "{{ base }}/series-list?channel=sermons", "Action": null },
+      { "Title": "Life Groups", "ActionUrl": "{{ base }}/series?id=current&channel=lifegroups", "Action": null }
+    ],
+    "Notifications": null
+  },
+  "IsLive": {{ isLive }},
+  "RequiredCrexVersion": null
+}

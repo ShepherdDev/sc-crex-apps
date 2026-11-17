@@ -1,0 +1,92 @@
+{%- comment -%}
+  GET /tv/series?id=<IdKey>                     one series and its messages
+  GET /tv/series?id=current&channel=sermons     newest series with a published video
+  GET /tv/series?id=current&channel=lifegroups  same, Life Group videos
+  (Crex "PosterList"). Only series in channels 26 or 28 are served.
+  Attribute Ids: 8885 = series PosterImage, 8888 = HLSVideo,
+                 8887 = message Speaker, 8914 = message PosterImage
+  Enabled Lava Commands: Sql
+{%- endcomment -%}
+{%- assign base = ConfigurationRigging.BaseUrl -%}
+{%- if QueryString.channel == 'lifegroups' -%}{%- assign channelId = 26 -%}{%- else -%}{%- assign channelId = 28 -%}{%- endif -%}
+
+{%- if QueryString.id == 'current' -%}
+  {%- sql channelId:'{{ channelId }}' -%}
+  SELECT TOP 1 S.[Id]
+  FROM [ContentChannelItem] S
+  INNER JOIN [ContentChannelItemAssociation] A ON A.[ContentChannelItemId] = S.[Id]
+  INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
+  INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+  WHERE S.[ContentChannelId] = @channelId
+    AND C.[StartDateTime] <= GETDATE()
+    AND ISNULL(H.[Value], '') <> ''
+  ORDER BY S.[StartDateTime] DESC
+  {%- endsql -%}
+  {%- assign seriesId = results | First | Property:'Id' -%}
+{%- else -%}
+  {%- assign seriesId = QueryString.id | FromIdHash -%}
+{%- endif -%}
+
+{%- if seriesId == null or seriesId == empty -%}
+{ "Error": "Series not found." }
+{%- else -%}
+  {%- sql seriesId:'{{ seriesId }}' -%}
+  SELECT S.[Id], S.[Title], P.[Value] AS [Poster]
+  FROM [ContentChannelItem] S
+  LEFT JOIN [AttributeValue] P ON P.[EntityId] = S.[Id] AND P.[AttributeId] = 8885
+  WHERE S.[Id] = @seriesId AND S.[ContentChannelId] IN (26, 28)
+  {%- endsql -%}
+  {%- assign series = results | First -%}
+  {%- if series == null or series == empty -%}
+{ "Error": "Series not found." }
+  {%- else -%}
+    {%- sql seriesId:'{{ seriesId }}' -%}
+    SELECT C.[Id], C.[Title], C.[Content], C.[StartDateTime],
+           SP.[Value] AS [Speaker], PI.[Value] AS [Poster]
+    FROM [ContentChannelItemAssociation] A
+    INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
+    INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+    LEFT JOIN [AttributeValue] SP ON SP.[EntityId] = C.[Id] AND SP.[AttributeId] = 8887
+    LEFT JOIN [AttributeValue] PI ON PI.[EntityId] = C.[Id] AND PI.[AttributeId] = 8914
+    WHERE A.[ContentChannelItemId] = @seriesId
+      AND C.[StartDateTime] <= GETDATE()
+      AND ISNULL(H.[Value], '') <> ''
+    ORDER BY C.[StartDateTime] DESC
+    {%- endsql -%}
+    {%- assign seriesPoster = series.Poster -%}
+    {%- assign sep = '' -%}
+{
+  "Template": "PosterList",
+  "Data": {
+    "Title": {{ series.Title | Default:'' | ToJSON }},
+    "BackgroundImage": {%- if seriesPoster != empty and seriesPoster != null -%}{
+      "HD": "/GetImage.ashx?Guid={{ seriesPoster }}&width=1280",
+      "FHD": "/GetImage.ashx?Guid={{ seriesPoster }}&width=1920",
+      "UHD": "/GetImage.ashx?Guid={{ seriesPoster }}"
+    }{%- else -%}null{%- endif -%},
+    "Items": [
+    {%- for row in results -%}
+      {%- assign poster = row.Poster -%}
+      {%- if poster == empty or poster == null -%}{%- assign poster = seriesPoster -%}{%- endif -%}
+      {%- assign description = row.Content | StripHtml | HtmlDecode | Trim | Default:'' -%}
+      {{ sep }}{
+        "Title": {{ row.Title | Default:'' | ToJSON }},
+        "Description": {{ description | ToJSON }},
+        "DetailLeft": "{{ row.StartDateTime | Date:'M/d/yyyy' }}",
+        "DetailRight": {{ row.Speaker | Default:'' | ToJSON }},
+        "Image": {%- if poster != empty and poster != null -%}{
+          "HD": "/GetImage.ashx?Guid={{ poster }}&maxwidth=1280",
+          "FHD": "/GetImage.ashx?Guid={{ poster }}&maxwidth=1920",
+          "UHD": "/GetImage.ashx?Guid={{ poster }}"
+        }{%- else -%}null{%- endif -%},
+        "Action": null,
+        "ActionUrl": "{{ base }}/watch?id={{ row.Id | ToIdHash }}"
+      }
+      {%- assign sep = ',' -%}
+    {%- endfor -%}
+    ]
+  },
+  "RequiredCrexVersion": null
+}
+  {%- endif -%}
+{%- endif -%}
