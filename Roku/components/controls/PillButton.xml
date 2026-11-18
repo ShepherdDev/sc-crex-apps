@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A rounded button. The screen that owns it handles keys and sets isFocused. -->
+<component name="PillButton" extends="Group">
+  <interface>
+    <field id="text" type="string" onChange="update" />
+    <field id="isFocused" type="boolean" onChange="update" />
+    <field id="primary" type="boolean" value="true" onChange="update" />
+    <!-- Read-only: width after sizing to the words -->
+    <field id="buttonWidth" type="float" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/source/lib/config.brs" />
+  <script type="text/brightscript" uri="pkg:/components/controls/PillButton.brs" />
+  <children>
+    <Group id="body">
+      <Poster id="bg" uri="pkg:/images/pill.9.png" height="72" />
+      <Label id="label" height="72" vertAlign="center" horizAlign="center" />
+    </Group>
+  </children>
+</component>

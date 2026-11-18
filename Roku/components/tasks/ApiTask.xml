@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fetches one TV API endpoint and parses the JSON. Use StartApi() in config.brs. -->
+<component name="ApiTask" extends="Task">
+  <interface>
+    <field id="path" type="string" />
+    <field id="response" type="assocarray" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/source/lib/config.brs" />
+  <script type="text/brightscript" uri="pkg:/components/tasks/ApiTask.brs" />
+</component>

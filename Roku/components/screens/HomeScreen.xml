@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home: the latest message up top, then rows of messages and series. -->
+<component name="HomeScreen" extends="Group">
+  <interface>
+    <!-- The /home response, set by MainScene every refresh -->
+    <field id="home" type="assocarray" onChange="onHome" />
+    <field id="error" type="string" onChange="onError" />
+    <!-- Set to ask MainScene to go somewhere: { name, ... } -->
+    <field id="navigate" type="assocarray" alwaysNotify="true" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/source/lib/config.brs" />
+  <script type="text/brightscript" uri="pkg:/source/lib/format.brs" />
+  <script type="text/brightscript" uri="pkg:/source/lib/content.brs" />
+  <script type="text/brightscript" uri="pkg:/components/screens/HomeScreen.brs" />
+  <children>
+    <Group id="hero">
+      <Poster id="heroArt" translation="[760,0]" width="1160" height="652" loadWidth="1160" loadHeight="652" loadDisplayMode="scaleToZoom" />
+      <Poster uri="pkg:/images/fade-right.png" translation="[760,0]" width="480" height="652" />
+      <Poster uri="pkg:/images/fade-down.png" translation="[760,352]" width="1160" height="300" />
+      <LayoutGroup id="heroText" translation="[472,140]" itemSpacings="[14,18,22,40]">
+        <Label id="heroSeries" />
+        <Label id="heroTitle" width="900" maxLines="2" wrap="true" />
+        <Label id="heroMeta" />
+        <Label id="heroDesc" width="760" maxLines="3" wrap="true" />
+        <Group id="buttons" />
+      </LayoutGroup>
+      <Group id="pill" visible="false">
+        <Poster id="pillBg" uri="pkg:/images/pill56.9.png" height="56" />
+        <Label id="pillLead" height="56" vertAlign="center" />
+        <Label id="pillEmphasis" height="56" vertAlign="center" />
+      </Group>
+    </Group>
+
+    <RowList
+      id="rows"
+      translation="[472,716]"
+      itemComponentName="Card"
+      numRows="4"
+      itemSize="[1448,290]"
+      itemSpacing="[0,48]"
+      rowItemSize="[[400,225]]"
+      rowItemSpacing="[[24,0]]"
+      rowLabelOffset="[[0,16]]"
+      showRowLabel="[true]"
+      rowFocusAnimationStyle="floatingFocus"
+      vertFocusAnimationStyle="fixedFocus"
+      focusBitmapUri="pkg:/images/focus-ring.9.png"
+      focusFootprintBlendColor="0x00000000" />
+
+    <Group id="errorView" visible="false">
+      <Label id="errorText" translation="[472,400]" width="1100" wrap="true" />
+      <PillButton id="retry" translation="[472,520]" text="Try Again" />
+    </Group>
+  </children>
+</component>

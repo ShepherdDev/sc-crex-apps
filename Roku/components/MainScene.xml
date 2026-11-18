@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The whole app: side menu on the left, a stack of screens to its right, and
+  the video player on top when something is playing.
+-->
+<component name="MainScene" extends="Scene">
+  <script type="text/brightscript" uri="pkg:/source/lib/config.brs" />
+  <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
+  <children>
+    <Group id="screens" />
+    <SideMenu id="menu" />
+    <!-- Home refreshes every minute so LIVE and the countdown stay current. -->
+    <Timer id="homeTimer" duration="60" repeat="true" />
+  </children>
+</component>

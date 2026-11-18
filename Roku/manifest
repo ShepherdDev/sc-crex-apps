@@ -1,6 +1,6 @@
 title=Shepherd Church
-major_version=1
-minor_version=2
+major_version=2
+minor_version=0
 build_version=1
 
 # Channel Icons
@@ -12,10 +12,9 @@ mm_icon_focus_fhd=pkg:/images/App-Icon-FHD-540x405.png
 splash_screen_sd=pkg:/images/Splash-480p.jpg
 splash_screen_hd=pkg:/images/Splash-720p.jpg
 splash_screen_fhd=pkg:/images/Splash-1080p.jpg
-splash_color=#121212
+splash_color=#0B0C0E
 splash_min_time=0
 
-ui_resolutions=hd,fhd
-uri_resolution_autosub=$$RES$$,480p,720p,1080p
-
-app_config=pkg:/source/config.json
+# Everything is laid out for 1920x1080, the same design size as the Fire TV app.
+# Roku scales it down on HD devices.
+ui_resolutions=fhd

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One row in the side menu: icon, words, and a LIVE tag on Watch Live. 300 x 72. -->
+<component name="MenuItem" extends="Group">
+  <interface>
+    <field id="label" type="string" onChange="update" />
+    <field id="icon" type="uri" onChange="update" />
+    <field id="isCurrent" type="boolean" onChange="update" />
+    <field id="isFocused" type="boolean" onChange="update" />
+    <field id="showLive" type="boolean" onChange="update" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/source/lib/config.brs" />
+  <script type="text/brightscript" uri="pkg:/components/menu/MenuItem.brs" />
+  <children>
+    <Group id="body" scaleRotateCenter="[150,36]">
+      <Poster id="bg" uri="pkg:/images/rr14.9.png" width="300" height="72" visible="false" />
+      <Poster id="iconImage" translation="[16,21]" width="30" height="30" />
+      <Label id="text" translation="[62,0]" width="150" height="72" vertAlign="center" />
+      <Poster id="liveBg" uri="pkg:/images/rr6.9.png" translation="[216,22]" width="66" height="28" visible="false" />
+      <Label id="liveText" text="LIVE" translation="[216,22]" width="66" height="28" horizAlign="center" vertAlign="center" visible="false" />
+    </Group>
+  </children>
+</component>

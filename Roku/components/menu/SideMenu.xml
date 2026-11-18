@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The always-visible menu on the left. Icons and words are always shown so
+  nobody has to guess what an icon means. Contents start inside the ~5%
+  title-safe zone because many TVs crop the picture's edges.
+-->
+<component name="SideMenu" extends="Group">
+  <interface>
+    <!-- Section on screen: home, live, series, groups -->
+    <field id="current" type="string" value="home" onChange="refresh" />
+    <field id="isLive" type="boolean" onChange="refresh" />
+    <!-- Set when the viewer picks a section -->
+    <field id="selected" type="string" alwaysNotify="true" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/source/lib/config.brs" />
+  <script type="text/brightscript" uri="pkg:/components/menu/SideMenu.brs" />
+  <children>
+    <Rectangle id="rail" width="400" height="1080" />
+    <Rectangle id="edge" translation="[399,0]" width="1" height="1080" color="0xFFFFFF14" />
+    <Poster id="logo" uri="pkg:/images/logo.png" translation="[96,64]" width="256" height="43" />
+    <Group id="items" translation="[84,171]" />
+  </children>
+</component>

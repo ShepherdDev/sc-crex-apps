@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Watch Live: join the stream, or when we're not live, when the next one starts. -->
+<component name="LiveScreen" extends="Group">
+  <interface>
+    <field id="home" type="assocarray" onChange="update" />
+    <field id="navigate" type="assocarray" alwaysNotify="true" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/source/lib/config.brs" />
+  <script type="text/brightscript" uri="pkg:/source/lib/format.brs" />
+  <script type="text/brightscript" uri="pkg:/components/screens/LiveScreen.brs" />
+  <children>
+    <LayoutGroup translation="[472,300]" itemSpacings="[20,56]">
+      <Label id="heading" width="1300" wrap="true" />
+      <Label id="detail" width="1200" wrap="true" />
+      <PillButton id="action" />
+    </LayoutGroup>
+  </children>
+</component>
