@@ -1,11 +1,12 @@
 import React from 'react';
-import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
+import {ActivityIndicator, Text, View} from 'react-native';
 import type {HomeResponse} from '../api/types';
 import {NextServicePill} from '../components/NextServicePill';
 import {PillButton} from '../components/PillButton';
 import {colors, SIDE_MARGIN} from '../config';
 import type {Navigate} from '../navigation';
 import {ErrorView} from './ErrorView';
+import {scaledStyles} from '../scale';
 
 /**
  * Watch Live when nothing is streaming. (When we're live, the menu item
@@ -78,7 +79,7 @@ export const LiveScreen = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   page: {
     flex: 1,
     backgroundColor: colors.background,

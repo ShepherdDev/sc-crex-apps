@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
-import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
+import {Image, Pressable, Text, View} from 'react-native';
 import {imageUrl} from '../api/client';
 import {colors} from '../config';
+import {scaledStyles} from '../scale';
 
 export const CARD_WIDTH = 400;
 export const CARD_HEIGHT = 225;
@@ -84,7 +85,7 @@ export const Card = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   wrap: {width: CARD_WIDTH},
   art: {
     width: CARD_WIDTH,

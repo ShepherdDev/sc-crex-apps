@@ -8,6 +8,7 @@ import type {LiveStream, Message} from '../api/types';
 import {colors} from '../config';
 import {createHlsPlayer, HlsPlayer} from '../player/shaka';
 import {getResumePosition, saveProgress} from '../storage/progress';
+import {scaledStyles} from '../scale';
 
 /** How often to save the position of a recorded message while it plays. */
 const SAVE_EVERY_MS = 15_000;
@@ -145,7 +146,7 @@ export const PlayerScreen = ({message, live, onFinished}: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   page: {flex: 1, backgroundColor: '#000'},
   video: {flex: 1},
   overlay: {

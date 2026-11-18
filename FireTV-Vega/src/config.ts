@@ -15,7 +15,7 @@ export const colors = {
 };
 
 /** Width of the always-visible menu on the left. Screens draw to its right. */
-export const MENU_WIDTH = 260;
+export const MENU_WIDTH = 320;
 
 /** Margin inside the content area so rows and banner line up. */
 export const SIDE_MARGIN = 72;

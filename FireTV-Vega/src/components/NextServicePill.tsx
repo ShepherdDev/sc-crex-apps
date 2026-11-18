@@ -1,7 +1,8 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {nextServiceLabel} from '../api/format';
 import {colors} from '../config';
+import {scaledStyles} from '../scale';
 
 /**
  * "Next service in 3 hours" on a dark, nearly opaque pill so it reads over
@@ -22,7 +23,7 @@ export const NextServicePill = ({start, now}: {start: string; now: string}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',

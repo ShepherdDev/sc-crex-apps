@@ -1,7 +1,8 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
 import {PillButton} from '../components/PillButton';
 import {colors} from '../config';
+import {scaledStyles} from '../scale';
 
 export const ErrorView = ({
   message,
@@ -22,7 +23,7 @@ export const ErrorView = ({
   </View>
 );
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   wrap: {
     flex: 1,
     alignItems: 'center',

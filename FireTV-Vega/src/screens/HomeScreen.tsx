@@ -1,12 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import {ActivityIndicator, Image, ScrollView, Text, View} from 'react-native';
 import {imageUrl} from '../api/client';
 import {messageMeta, startTimeLabel} from '../api/format';
 import type {HomeResponse, Message, Series} from '../api/types';
@@ -18,6 +11,7 @@ import {colors, SIDE_MARGIN} from '../config';
 import {getContinueWatching, Progress} from '../storage/progress';
 import type {Navigate} from '../navigation';
 import {ErrorView} from './ErrorView';
+import {px, scaledStyles} from '../scale';
 
 const HERO_HEIGHT = 652;
 const HERO_IMAGE_WIDTH = 1160;
@@ -54,7 +48,7 @@ export const HomeScreen = ({
   const scrollToRow = (id: string) => {
     const y = rowY.current[id];
     if (y !== undefined) {
-      scroll.current?.scrollTo({y: Math.max(0, y - 80), animated: true});
+      scroll.current?.scrollTo({y: Math.max(0, y - px(80)), animated: true});
     }
   };
   const scrollToTop = () => scroll.current?.scrollTo({y: 0, animated: true});
@@ -98,7 +92,7 @@ export const HomeScreen = ({
             key={i}
             style={[
               styles.fadeStep,
-              {left: SHADE_WIDTH + i * FADE_STEP, opacity},
+              {left: px(SHADE_WIDTH + i * FADE_STEP), opacity},
             ]}
           />
         ))}
@@ -107,7 +101,7 @@ export const HomeScreen = ({
             key={`b${i}`}
             style={[
               styles.fadeBottom,
-              {bottom: (i * 92) / FADE_STEPS.length, opacity},
+              {bottom: px((i * 92) / FADE_STEPS.length), opacity},
             ]}
           />
         ))}
@@ -264,7 +258,7 @@ export const HomeScreen = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   page: {flex: 1, backgroundColor: colors.background},
   center: {
     flex: 1,

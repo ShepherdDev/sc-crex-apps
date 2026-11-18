@@ -1,7 +1,8 @@
 import React, {useRef} from 'react';
-import {FlatList, StyleSheet, Text, View} from 'react-native';
+import {FlatList, Text, View} from 'react-native';
 import {colors, SIDE_MARGIN} from '../config';
 import {CARD_WIDTH} from './Card';
+import {px, scaledStyles} from '../scale';
 
 const GAP = 28;
 
@@ -47,8 +48,8 @@ export function Row<T>({
         contentContainerStyle={styles.content}
         ItemSeparatorComponent={Separator}
         getItemLayout={(_, index) => ({
-          length: CARD_WIDTH + GAP,
-          offset: (CARD_WIDTH + GAP) * index,
+          length: px(CARD_WIDTH + GAP),
+          offset: px(CARD_WIDTH + GAP) * index,
           index,
         })}
         renderItem={({item, index}) =>
@@ -70,9 +71,9 @@ export function Row<T>({
   );
 }
 
-const Separator = () => <View style={{width: GAP}} />;
+const Separator = () => <View style={{width: px(GAP)}} />;
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   row: {marginBottom: 48},
   title: {
     marginLeft: SIDE_MARGIN,

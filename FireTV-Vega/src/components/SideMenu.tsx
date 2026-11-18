@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
 import {TVFocusGuideView} from '@amazon-devices/react-native-kepler';
-import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
+import {Image, Pressable, Text, View} from 'react-native';
 import {colors, MENU_WIDTH} from '../config';
 import type {Section} from '../navigation';
+import {scaledStyles} from '../scale';
 
 const ITEMS: {section: Section; label: string; hint: string}[] = [
   {section: 'home', label: 'Home', hint: 'Go to the home screen'},
@@ -115,6 +116,7 @@ const MenuItem = ({
       ]}>
       <Icon section={section} color={color} />
       <Text
+        numberOfLines={1}
         style={[styles.label, {color}, (current || focused) && styles.bold]}>
         {label}
       </Text>
@@ -166,7 +168,7 @@ const Icon = ({section, color}: {section: Section; color: string}) => {
   }
 };
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   rail: {
     position: 'absolute',
     top: 0,
@@ -184,9 +186,9 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 18,
+    gap: 16,
     height: 72,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     borderRadius: 14,
   },
   itemCurrent: {backgroundColor: 'rgba(67,178,229,0.14)'},

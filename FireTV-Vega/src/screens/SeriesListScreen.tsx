@@ -1,17 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import {ActivityIndicator, FlatList, Text, View} from 'react-native';
 import {getSeriesList} from '../api/client';
 import type {SeriesListResponse} from '../api/types';
 import {Card} from '../components/Card';
 import {colors, SIDE_MARGIN} from '../config';
 import type {Navigate} from '../navigation';
 import {ErrorView} from './ErrorView';
+import {scaledStyles} from '../scale';
 
 const COLUMNS = 4;
 
@@ -78,7 +73,7 @@ export const SeriesListScreen = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   page: {flex: 1, backgroundColor: colors.background, paddingTop: 64},
   center: {
     flex: 1,

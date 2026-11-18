@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {Pressable, Text, View} from 'react-native';
 import {colors} from '../config';
+import {scaledStyles} from '../scale';
 
 interface Props {
   label: string;
@@ -51,7 +52,7 @@ export const PillButton = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',

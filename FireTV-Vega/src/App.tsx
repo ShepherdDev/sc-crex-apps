@@ -11,6 +11,7 @@ import {LiveScreen} from './screens/LiveScreen';
 import {PlayerScreen} from './screens/PlayerScreen';
 import {SeriesListScreen} from './screens/SeriesListScreen';
 import {SeriesScreen} from './screens/SeriesScreen';
+import {scaledStyles} from './scale';
 
 interface Entry {
   key: number;
@@ -183,7 +184,7 @@ function renderRoute(
   }
 }
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   root: {flex: 1, backgroundColor: colors.background},
   content: {
     position: 'absolute',

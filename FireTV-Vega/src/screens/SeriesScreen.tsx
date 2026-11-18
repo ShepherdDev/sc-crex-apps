@@ -4,7 +4,6 @@ import {
   FlatList,
   Image,
   Pressable,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
@@ -15,6 +14,7 @@ import {PillButton} from '../components/PillButton';
 import {colors, SIDE_MARGIN} from '../config';
 import type {Navigate} from '../navigation';
 import {ErrorView} from './ErrorView';
+import {scaledStyles} from '../scale';
 
 /** Big series art on the left, the series' messages on the right. */
 export const SeriesScreen = ({
@@ -172,7 +172,7 @@ const MessageRow = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styles = scaledStyles({
   page: {
     flex: 1,
     flexDirection: 'row',
