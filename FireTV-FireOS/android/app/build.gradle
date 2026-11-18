@@ -95,16 +95,27 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        // Appstore upload key. The keystore and password live OUTSIDE git:
+        // put these four lines in ~/.gradle/gradle.properties on the build
+        // machine (see README). Without them, release builds use the debug
+        // key, which is fine for sideloading but not for the Appstore.
+        if (project.hasProperty('SHEPHERD_TV_STORE_FILE')) {
+            release {
+                storeFile file(SHEPHERD_TV_STORE_FILE)
+                storePassword SHEPHERD_TV_STORE_PASSWORD
+                keyAlias SHEPHERD_TV_KEY_ALIAS
+                keyPassword SHEPHERD_TV_KEY_PASSWORD
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // TODO before the Appstore upload: sign with a release key kept
-            // outside git (https://reactnative.dev/docs/signed-apk-android).
-            // The debug key is fine for sideloading tests.
-            signingConfig signingConfigs.debug
+            signingConfig project.hasProperty('SHEPHERD_TV_STORE_FILE')
+                ? signingConfigs.release
+                : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

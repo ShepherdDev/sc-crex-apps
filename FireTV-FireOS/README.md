@@ -22,9 +22,22 @@ npm install
 npm run build:release   # android/app/build/outputs/apk/release/app-release.apk
 ```
 
-The release build is currently signed with the debug key, which is fine for
-sideloading. Before uploading to Amazon, set up a release key (see TODO in
-`android/app/build.gradle`).
+### Signing for the Appstore
+
+Release builds are signed with the Appstore upload key when these are set in
+`~/.gradle/gradle.properties` on the build machine (never in this repo):
+
+```
+SHEPHERD_TV_STORE_FILE=/full/path/to/shepherd-tv-release.keystore
+SHEPHERD_TV_STORE_PASSWORD=...
+SHEPHERD_TV_KEY_ALIAS=shepherd-tv
+SHEPHERD_TV_KEY_PASSWORD=...
+```
+
+The keystore and password are in the church password manager. Without them,
+release builds fall back to the debug key (fine for sideloading only).
+Amazon re-signs uploads with the account's own Amazon key, so existing
+installs update normally.
 
 ## Install on a Fire TV for testing
 
