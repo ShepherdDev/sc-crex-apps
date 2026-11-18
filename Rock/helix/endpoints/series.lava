@@ -1,0 +1,88 @@
+{%- comment -%}
+  GET /tv/series?id=<IdKey>                     one series and all its published messages
+  GET /tv/series?id=current&channel=sermons     the newest series with a published video
+  GET /tv/series?id=current&channel=lifegroups  same, for Life Group videos
+  Only series in channels 26 or 28 are served.
+  Enabled Lava Commands: Sql      Cache: 300 seconds
+  Attributes: 8885 series PosterImage, 8888 HLSVideo, 8887 Speaker, 8914 message PosterImage
+{%- endcomment -%}
+{%- assign base = ConfigurationRigging.BaseUrl -%}
+{%- if QueryString.channel == 'lifegroups' -%}{%- assign channelId = 26 -%}{%- else -%}{%- assign channelId = 28 -%}{%- endif -%}
+
+{%- if QueryString.id == 'current' -%}
+  {%- sql channelId:'{{ channelId }}' -%}
+  SELECT TOP 1 S.[Id]
+  FROM [ContentChannelItem] S
+  INNER JOIN [ContentChannelItemAssociation] A ON A.[ContentChannelItemId] = S.[Id]
+  INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
+  INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+  WHERE S.[ContentChannelId] = @channelId
+    AND C.[StartDateTime] <= GETDATE()
+    AND H.[Value] LIKE 'http%'
+  ORDER BY S.[StartDateTime] DESC
+  {%- endsql -%}
+  {%- assign seriesId = results | First | Property:'Id' -%}
+{%- else -%}
+  {%- assign seriesId = QueryString.id | FromIdHash -%}
+{%- endif -%}
+
+{%- if seriesId == null or seriesId == empty -%}
+{ "error": "Series not found." }
+{%- else -%}
+  {%- sql seriesId:'{{ seriesId }}' -%}
+  SELECT S.[Id], S.[Title], S.[Content], S.[StartDateTime], P.[Value] AS [Poster]
+  FROM [ContentChannelItem] S
+  LEFT JOIN [AttributeValue] P ON P.[EntityId] = S.[Id] AND P.[AttributeId] = 8885
+  WHERE S.[Id] = @seriesId AND S.[ContentChannelId] IN (26, 28)
+  {%- endsql -%}
+  {%- assign series = results | First -%}
+  {%- if series == null or series == empty -%}
+{ "error": "Series not found." }
+  {%- else -%}
+    {%- sql seriesId:'{{ seriesId }}' -%}
+    SELECT C.[Id], C.[Title], C.[Content], C.[StartDateTime],
+           SP.[Value] AS [Speaker], H.[Value] AS [VideoUrl],
+           COALESCE(NULLIF(PI.[Value], ''), SPI.[Value]) AS [Poster]
+    FROM [ContentChannelItemAssociation] A
+    INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
+    INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+    LEFT JOIN [AttributeValue] SP ON SP.[EntityId] = C.[Id] AND SP.[AttributeId] = 8887
+    LEFT JOIN [AttributeValue] PI ON PI.[EntityId] = C.[Id] AND PI.[AttributeId] = 8914
+    LEFT JOIN [AttributeValue] SPI ON SPI.[EntityId] = @seriesId AND SPI.[AttributeId] = 8885
+    WHERE A.[ContentChannelItemId] = @seriesId
+      AND C.[StartDateTime] <= GETDATE()
+      AND H.[Value] LIKE 'http%'
+    ORDER BY C.[StartDateTime] DESC
+    {%- endsql -%}
+    {%- assign seriesKey = series.Id | ToIdHash -%}
+    {%- assign seriesTitle = series.Title | Default:'' -%}
+{
+  "series": {
+    "id": "{{ seriesKey }}",
+    "title": {{ seriesTitle | ToJSON }},
+    "description": {{ series.Content | StripHtml | HtmlDecode | Trim | Default:'' | ToJSON }},
+    "date": "{{ series.StartDateTime | Date:'yyyy-MM-ddTHH:mm:ss' }}",
+    "image": {%- if series.Poster != empty -%}"/GetImage.ashx?Guid={{ series.Poster }}"{%- else -%}null{%- endif -%},
+    "messageCount": {{ results | Size }},
+    "url": "{{ base }}/series?id={{ seriesKey }}"
+  },
+  "messages": [
+    {%- assign sep = '' -%}
+    {%- for m in results -%}
+    {{ sep }}{
+      "id": "{{ m.Id | ToIdHash }}",
+      "title": {{ m.Title | Default:'' | ToJSON }},
+      "description": {{ m.Content | StripHtml | HtmlDecode | Trim | Default:'' | ToJSON }},
+      "date": "{{ m.StartDateTime | Date:'yyyy-MM-ddTHH:mm:ss' }}",
+      "speaker": {{ m.Speaker | Default:'' | ToJSON }},
+      "image": {%- if m.Poster != empty -%}"/GetImage.ashx?Guid={{ m.Poster }}"{%- else -%}null{%- endif -%},
+      "videoUrl": {{ m.VideoUrl | ToJSON }},
+      "seriesId": "{{ seriesKey }}",
+      "seriesTitle": {{ seriesTitle | ToJSON }}
+    }
+    {%- assign sep = ',' -%}
+    {%- endfor -%}
+  ]
+}
+  {%- endif -%}
+{%- endif -%}

@@ -1,0 +1,27 @@
+{%- comment -%}
+  Crex Content Channel View (page 1241 "Archives", block 2136) - Template
+  Same rules as ItemChildren-Template.lava: ToJSON for strings, leading comma.
+{%- endcomment -%}
+{%- assign sep = '' -%}
+[
+{%- for Item in Items -%}
+  {%- assign imageGuid = Item | Attribute:'PosterImage','RawValue' -%}
+  {%- assign title = Item.Title | Default:'' -%}
+  {%- assign summary = Item | Attribute:'Summary' | StripHtml | HtmlDecode | Trim | Default:'' -%}
+  {{ sep }}{
+    "Title": {{ title | ToJSON }},
+    "Description": {{ summary | ToJSON }},
+    "DetailLeft": "{{ Item.StartDateTime | Date:'M/d/yyyy' }}",
+    "DetailRight": "",
+    "Image": {
+      {%- if imageGuid != empty -%}
+      "HD": "/GetImage.ashx?Guid={{ imageGuid }}&maxwidth=1280",
+      "FHD": "/GetImage.ashx?Guid={{ imageGuid }}&maxwidth=1920",
+      "UHD": "/GetImage.ashx?Guid={{ imageGuid }}"
+      {%- endif -%}
+    },
+    "ActionUrl": "/api/crex/page/{{ LinkedPages.DetailPageId }}?ContentItemId={{ Item.Id }}"
+  }
+  {%- assign sep = ',' -%}
+{%- endfor -%}
+]

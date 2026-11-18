@@ -1,0 +1,6 @@
+{
+  "BaseUrl": "/api/v2/lava-app/1/tv",
+  "TimeZone": "America/Los_Angeles",
+  "LiveStreamUrl": "https://resi.media/GZsMuo/Manifest.m3u8",
+  "LiveScheduleIds": [1459, 1460, 2114, 1931, 1570, 1571, 2004, 1572, 4158, 1749, 1750, 1751]
+}

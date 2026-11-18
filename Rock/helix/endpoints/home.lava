@@ -1,0 +1,232 @@
+{%- comment -%}
+  GET /tv/home   Everything the home screen needs in one call.
+  Enabled Lava Commands: RockEntity, Sql      Cache: 60 seconds
+  IDs: channels 28 (Sermons) and 26 (Life Group Video Series);
+       attributes 8885 series PosterImage, 8888 HLSVideo, 8887 Speaker, 8914 message PosterImage.
+  Live schedules come from ConfigurationRigging.LiveScheduleIds.
+{%- endcomment -%}
+{%- assign cfg = ConfigurationRigging -%}
+{%- assign base = cfg.BaseUrl -%}
+{%- assign scheduleIds = cfg.LiveScheduleIds | Join:',' -%}
+
+{%- comment -%} Live status and upcoming streams {%- endcomment -%}
+{%- assign liveTitle = '' -%}
+{%- assign liveStart = '' -%}
+{%- assign upcomingText = '' -%}
+{%- schedule ids:'{{ scheduleIds }}' -%}
+  {%- for s in scheduleItems -%}
+    {%- unless s.IsActive -%}{%- continue -%}{%- endunless -%}
+    {%- assign label = s.Description | StripHtml | Trim -%}
+    {%- if label == empty -%}{%- assign label = s.Name -%}{%- endif -%}
+    {%- assign active = s | Property:'IsScheduleActive' -%}
+    {%- if active == true and liveTitle == '' -%}
+      {%- assign liveTitle = label -%}
+      {%- assign liveStart = s.StartTimeOfDay -%}
+    {%- endif -%}
+    {%- assign dates = s.iCalendarContent | DatesFromICal:3 -%}
+    {%- for d in dates -%}
+      {%- assign minutesAway = 'Now' | DateDiff:d,'m' -%}
+      {%- if minutesAway <= 0 -%}{%- continue -%}{%- endif -%}
+      {%- capture upcomingText -%}{{ upcomingText }}~{{ d | Date:'yyyy-MM-ddTHH:mm:ss' }}|{{ label | Replace:'~','-' | Replace:'|','-' }}{%- endcapture -%}
+    {%- endfor -%}
+  {%- endfor -%}
+{%- endschedule -%}
+{%- assign upcoming = upcomingText | Split:'~' | Sort -%}
+
+{%- comment -%} Latest messages across all sermon series {%- endcomment -%}
+{%- sql -%}
+SELECT TOP 12 C.[Id], C.[Title], C.[Content], C.[StartDateTime],
+       SP.[Value] AS [Speaker], H.[Value] AS [VideoUrl],
+       COALESCE(NULLIF(PI.[Value], ''), SPI.[Value]) AS [Poster],
+       S.[Id] AS [SeriesId], S.[Title] AS [SeriesTitle]
+FROM [ContentChannelItem] S
+INNER JOIN [ContentChannelItemAssociation] A ON A.[ContentChannelItemId] = S.[Id]
+INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
+INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+LEFT JOIN [AttributeValue] SP ON SP.[EntityId] = C.[Id] AND SP.[AttributeId] = 8887
+LEFT JOIN [AttributeValue] PI ON PI.[EntityId] = C.[Id] AND PI.[AttributeId] = 8914
+LEFT JOIN [AttributeValue] SPI ON SPI.[EntityId] = S.[Id] AND SPI.[AttributeId] = 8885
+WHERE S.[ContentChannelId] = 28
+  AND C.[StartDateTime] <= GETDATE()
+  AND H.[Value] LIKE 'http%'
+ORDER BY C.[StartDateTime] DESC
+{%- endsql -%}
+{%- assign latest = results -%}
+{%- assign currentSeriesId = latest | First | Property:'SeriesId' -%}
+
+{%- comment -%} Messages in the current series {%- endcomment -%}
+{%- sql seriesId:'{{ currentSeriesId }}' -%}
+SELECT C.[Id], C.[Title], C.[Content], C.[StartDateTime],
+       SP.[Value] AS [Speaker], H.[Value] AS [VideoUrl],
+       COALESCE(NULLIF(PI.[Value], ''), SPI.[Value]) AS [Poster],
+       S.[Id] AS [SeriesId], S.[Title] AS [SeriesTitle]
+FROM [ContentChannelItem] S
+INNER JOIN [ContentChannelItemAssociation] A ON A.[ContentChannelItemId] = S.[Id]
+INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
+INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+LEFT JOIN [AttributeValue] SP ON SP.[EntityId] = C.[Id] AND SP.[AttributeId] = 8887
+LEFT JOIN [AttributeValue] PI ON PI.[EntityId] = C.[Id] AND PI.[AttributeId] = 8914
+LEFT JOIN [AttributeValue] SPI ON SPI.[EntityId] = S.[Id] AND SPI.[AttributeId] = 8885
+WHERE S.[Id] = @seriesId
+  AND C.[StartDateTime] <= GETDATE()
+  AND H.[Value] LIKE 'http%'
+ORDER BY C.[StartDateTime] DESC
+{%- endsql -%}
+{%- assign currentMessages = results -%}
+
+{%- comment -%} Series rows: newest 12 with a published video {%- endcomment -%}
+{%- sql channelId:'28' -%}
+SELECT TOP 12 * FROM (
+  SELECT S.[Id], S.[Title], S.[Content], S.[StartDateTime], P.[Value] AS [Poster],
+         (SELECT COUNT(*)
+          FROM [ContentChannelItemAssociation] A
+          INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
+          INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+          WHERE A.[ContentChannelItemId] = S.[Id] AND C.[StartDateTime] <= GETDATE()
+            AND H.[Value] LIKE 'http%') AS [MessageCount]
+  FROM [ContentChannelItem] S
+  LEFT JOIN [AttributeValue] P ON P.[EntityId] = S.[Id] AND P.[AttributeId] = 8885
+  WHERE S.[ContentChannelId] = @channelId AND S.[StartDateTime] <= GETDATE()
+) X
+WHERE X.[MessageCount] > 0
+ORDER BY X.[StartDateTime] DESC
+{%- endsql -%}
+{%- assign sermonSeries = results -%}
+{%- sql channelId:'26' -%}
+SELECT TOP 12 * FROM (
+  SELECT S.[Id], S.[Title], S.[Content], S.[StartDateTime], P.[Value] AS [Poster],
+         (SELECT COUNT(*)
+          FROM [ContentChannelItemAssociation] A
+          INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
+          INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+          WHERE A.[ContentChannelItemId] = S.[Id] AND C.[StartDateTime] <= GETDATE()
+            AND H.[Value] LIKE 'http%') AS [MessageCount]
+  FROM [ContentChannelItem] S
+  LEFT JOIN [AttributeValue] P ON P.[EntityId] = S.[Id] AND P.[AttributeId] = 8885
+  WHERE S.[ContentChannelId] = @channelId AND S.[StartDateTime] <= GETDATE()
+) X
+WHERE X.[MessageCount] > 0
+ORDER BY X.[StartDateTime] DESC
+{%- endsql -%}
+{%- assign lifeGroupSeries = results -%}
+{%- assign hero = latest | First -%}
+{
+  "timeZone": {{ cfg.TimeZone | ToJSON }},
+  "generatedAt": "{{ 'Now' | Date:'yyyy-MM-ddTHH:mm:ss' }}",
+  "live": {%- if liveTitle != '' -%}{
+    "title": {{ liveTitle | ToJSON }},
+    "startTime": "{{ liveStart }}",
+    "videoUrl": {{ cfg.LiveStreamUrl | ToJSON }}
+  }{%- else -%}null{%- endif -%},
+  "upcoming": [
+    {%- assign sep = '' -%}
+    {%- assign shown = 0 -%}
+    {%- for u in upcoming -%}
+      {%- if u == empty or shown >= 4 -%}{%- continue -%}{%- endif -%}
+      {%- assign shown = shown | Plus:1 -%}
+      {%- assign parts = u | Split:'|' -%}
+      {{ sep }}{ "start": "{{ parts[0] }}", "title": {{ parts[1] | ToJSON }} }
+      {%- assign sep = ',' -%}
+    {%- endfor -%}
+  ],
+  "hero": {%- if hero -%}{
+    "id": "{{ hero.Id | ToIdHash }}",
+    "title": {{ hero.Title | Default:'' | ToJSON }},
+    "description": {{ hero.Content | StripHtml | HtmlDecode | Trim | Default:'' | ToJSON }},
+    "date": "{{ hero.StartDateTime | Date:'yyyy-MM-ddTHH:mm:ss' }}",
+    "speaker": {{ hero.Speaker | Default:'' | ToJSON }},
+    "image": {%- if hero.Poster != empty -%}"/GetImage.ashx?Guid={{ hero.Poster }}"{%- else -%}null{%- endif -%},
+    "videoUrl": {{ hero.VideoUrl | ToJSON }},
+    "seriesId": "{{ hero.SeriesId | ToIdHash }}",
+    "seriesTitle": {{ hero.SeriesTitle | Default:'' | ToJSON }}
+  }{%- else -%}null{%- endif -%},
+  "rows": [
+    {
+      "id": "latest",
+      "title": "Latest Messages",
+      "type": "messages",
+      "items": [
+        {%- assign sep = '' -%}
+        {%- for m in latest offset:1 -%}
+        {{ sep }}{
+          "id": "{{ m.Id | ToIdHash }}",
+          "title": {{ m.Title | Default:'' | ToJSON }},
+          "description": {{ m.Content | StripHtml | HtmlDecode | Trim | Default:'' | ToJSON }},
+          "date": "{{ m.StartDateTime | Date:'yyyy-MM-ddTHH:mm:ss' }}",
+          "speaker": {{ m.Speaker | Default:'' | ToJSON }},
+          "image": {%- if m.Poster != empty -%}"/GetImage.ashx?Guid={{ m.Poster }}"{%- else -%}null{%- endif -%},
+          "videoUrl": {{ m.VideoUrl | ToJSON }},
+          "seriesId": "{{ m.SeriesId | ToIdHash }}",
+          "seriesTitle": {{ m.SeriesTitle | Default:'' | ToJSON }}
+        }
+        {%- assign sep = ',' -%}
+        {%- endfor -%}
+      ]
+    },
+    {
+      "id": "current-series",
+      "title": {{ hero.SeriesTitle | Default:'Current Series' | ToJSON }},
+      "type": "messages",
+      "seriesId": "{{ currentSeriesId | ToIdHash }}",
+      "items": [
+        {%- assign sep = '' -%}
+        {%- for m in currentMessages -%}
+        {{ sep }}{
+          "id": "{{ m.Id | ToIdHash }}",
+          "title": {{ m.Title | Default:'' | ToJSON }},
+          "description": {{ m.Content | StripHtml | HtmlDecode | Trim | Default:'' | ToJSON }},
+          "date": "{{ m.StartDateTime | Date:'yyyy-MM-ddTHH:mm:ss' }}",
+          "speaker": {{ m.Speaker | Default:'' | ToJSON }},
+          "image": {%- if m.Poster != empty -%}"/GetImage.ashx?Guid={{ m.Poster }}"{%- else -%}null{%- endif -%},
+          "videoUrl": {{ m.VideoUrl | ToJSON }},
+          "seriesId": "{{ m.SeriesId | ToIdHash }}",
+          "seriesTitle": {{ m.SeriesTitle | Default:'' | ToJSON }}
+        }
+        {%- assign sep = ',' -%}
+        {%- endfor -%}
+      ]
+    },
+    {
+      "id": "series",
+      "title": "All Series",
+      "type": "series",
+      "seeAllUrl": "{{ base }}/series-list?channel=sermons",
+      "items": [
+        {%- assign sep = '' -%}
+        {%- for s in sermonSeries -%}
+        {{ sep }}{
+          "id": "{{ s.Id | ToIdHash }}",
+          "title": {{ s.Title | Default:'' | ToJSON }},
+          "description": {{ s.Content | StripHtml | HtmlDecode | Trim | Default:'' | ToJSON }},
+          "date": "{{ s.StartDateTime | Date:'yyyy-MM-ddTHH:mm:ss' }}",
+          "image": {%- if s.Poster != empty -%}"/GetImage.ashx?Guid={{ s.Poster }}"{%- else -%}null{%- endif -%},
+          "messageCount": {{ s.MessageCount }},
+          "url": "{{ base }}/series?id={{ s.Id | ToIdHash }}"
+        }
+        {%- assign sep = ',' -%}
+        {%- endfor -%}
+      ]
+    },
+    {
+      "id": "life-groups",
+      "title": "Life Groups",
+      "type": "series",
+      "seeAllUrl": "{{ base }}/series-list?channel=lifegroups",
+      "items": [
+        {%- assign sep = '' -%}
+        {%- for s in lifeGroupSeries -%}
+        {{ sep }}{
+          "id": "{{ s.Id | ToIdHash }}",
+          "title": {{ s.Title | Default:'' | ToJSON }},
+          "description": {{ s.Content | StripHtml | HtmlDecode | Trim | Default:'' | ToJSON }},
+          "date": "{{ s.StartDateTime | Date:'yyyy-MM-ddTHH:mm:ss' }}",
+          "image": {%- if s.Poster != empty -%}"/GetImage.ashx?Guid={{ s.Poster }}"{%- else -%}null{%- endif -%},
+          "messageCount": {{ s.MessageCount }},
+          "url": "{{ base }}/series?id={{ s.Id | ToIdHash }}"
+        }
+        {%- assign sep = ',' -%}
+        {%- endfor -%}
+      ]
+    }
+  ]
+}

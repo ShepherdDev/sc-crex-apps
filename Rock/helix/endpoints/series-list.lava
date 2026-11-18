@@ -1,0 +1,44 @@
+{%- comment -%}
+  GET /tv/series-list?channel=sermons|lifegroups   every series with a published video, newest first
+  (the "See all" screen). Enabled Lava Commands: Sql      Cache: 300 seconds
+{%- endcomment -%}
+{%- assign base = ConfigurationRigging.BaseUrl -%}
+{%- if QueryString.channel == 'lifegroups' -%}
+  {%- assign channelId = 26 -%}{%- assign listTitle = 'Life Groups' -%}
+{%- else -%}
+  {%- assign channelId = 28 -%}{%- assign listTitle = 'All Series' -%}
+{%- endif -%}
+{%- sql channelId:'{{ channelId }}' -%}
+SELECT * FROM (
+  SELECT S.[Id], S.[Title], S.[Content], S.[StartDateTime], P.[Value] AS [Poster],
+         (SELECT COUNT(*)
+          FROM [ContentChannelItemAssociation] A
+          INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
+          INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+          WHERE A.[ContentChannelItemId] = S.[Id] AND C.[StartDateTime] <= GETDATE()
+            AND H.[Value] LIKE 'http%') AS [MessageCount]
+  FROM [ContentChannelItem] S
+  LEFT JOIN [AttributeValue] P ON P.[EntityId] = S.[Id] AND P.[AttributeId] = 8885
+  WHERE S.[ContentChannelId] = @channelId AND S.[StartDateTime] <= GETDATE()
+) X
+WHERE X.[MessageCount] > 0
+ORDER BY X.[StartDateTime] DESC
+{%- endsql -%}
+{
+  "title": {{ listTitle | ToJSON }},
+  "series": [
+    {%- assign sep = '' -%}
+    {%- for s in results -%}
+    {{ sep }}{
+      "id": "{{ s.Id | ToIdHash }}",
+      "title": {{ s.Title | Default:'' | ToJSON }},
+      "description": {{ s.Content | StripHtml | HtmlDecode | Trim | Default:'' | ToJSON }},
+      "date": "{{ s.StartDateTime | Date:'yyyy-MM-ddTHH:mm:ss' }}",
+      "image": {%- if s.Poster != empty -%}"/GetImage.ashx?Guid={{ s.Poster }}"{%- else -%}null{%- endif -%},
+      "messageCount": {{ s.MessageCount }},
+      "url": "{{ base }}/series?id={{ s.Id | ToIdHash }}"
+    }
+    {%- assign sep = ',' -%}
+    {%- endfor -%}
+  ]
+}
