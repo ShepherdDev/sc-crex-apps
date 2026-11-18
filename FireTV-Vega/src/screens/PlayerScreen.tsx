@@ -58,20 +58,24 @@ export const PlayerScreen = ({message, live, onFinished}: Props) => {
       video.addEventListener('playing', onPlaying);
       video.addEventListener('error', onError);
       video.addEventListener('ended', onEnded);
+      video.autoplay = false;
+      // Mount the video view now so its surface is ready when playback starts.
+      setPlayer(video);
 
       hls.current = createHlsPlayer(video);
-      await hls.current.load(url);
+      const resumeAt =
+        message && !live ? await getResumePosition(message.id) : undefined;
       if (cancelled) {
         return;
       }
+      await hls.current.load(url, resumeAt);
+      if (cancelled) {
+        return;
+      }
+      video.play();
       if (message && !live) {
-        const resumeAt = await getResumePosition(message.id);
-        if (resumeAt) {
-          video.currentTime = resumeAt;
-        }
         saveTimer = setInterval(save, SAVE_EVERY_MS);
       }
-      setPlayer(video);
     })().catch(() => !cancelled && setState('error'));
 
     return () => {
