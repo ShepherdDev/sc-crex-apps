@@ -16,9 +16,6 @@ import {px, scaledStyles} from '../scale';
 const HERO_HEIGHT = 652;
 const HERO_IMAGE_WIDTH = 1160;
 
-/** Fade steps that blend the solid text panel into the artwork (no gradients on TV). */
-const FADE_STEPS = [0.85, 0.65, 0.45, 0.25, 0.1];
-const FADE_STEP = 32;
 const SHADE_WIDTH = 800;
 
 export const HomeScreen = ({
@@ -87,24 +84,17 @@ export const HomeScreen = ({
           />
         ) : null}
         <View style={styles.heroShade} />
-        {FADE_STEPS.map((opacity, i) => (
-          <View
-            key={i}
-            style={[
-              styles.fadeStep,
-              {left: px(SHADE_WIDTH + i * FADE_STEP), opacity},
-            ]}
-          />
-        ))}
-        {FADE_STEPS.map((opacity, i) => (
-          <View
-            key={`b${i}`}
-            style={[
-              styles.fadeBottom,
-              {bottom: px((i * 92) / FADE_STEPS.length), opacity},
-            ]}
-          />
-        ))}
+        {/* Smooth fades from the text panel into the art, and into the rows below. */}
+        <Image
+          source={require('../assets/fade-right.png')}
+          style={styles.fadeRight}
+          resizeMode="stretch"
+        />
+        <Image
+          source={require('../assets/fade-down.png')}
+          style={styles.fadeBottom}
+          resizeMode="stretch"
+        />
 
         {/* Countdown to the next stream; hidden while we're live. */}
         {next && !live ? (
@@ -283,19 +273,19 @@ const styles = scaledStyles({
     height: HERO_HEIGHT,
     backgroundColor: colors.background,
   },
-  fadeStep: {
+  fadeRight: {
     position: 'absolute',
     top: 0,
-    width: FADE_STEP,
+    left: SHADE_WIDTH,
+    width: 240,
     height: HERO_HEIGHT,
-    backgroundColor: colors.background,
   },
   fadeBottom: {
     position: 'absolute',
     left: 0,
     right: 0,
-    height: 92 / FADE_STEPS.length,
-    backgroundColor: colors.background,
+    bottom: 0,
+    height: 140,
   },
   topBar: {
     position: 'absolute',
