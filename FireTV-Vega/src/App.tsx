@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {TVFocusGuideView} from '@amazon-devices/react-native-kepler';
-import {BackHandler, StyleSheet, View} from 'react-native';
+import {AppState, BackHandler, StyleSheet, View} from 'react-native';
 import type {HomeResponse} from './api/types';
 import {SideMenu} from './components/SideMenu';
 import {colors, MENU_WIDTH} from './config';
@@ -64,6 +64,24 @@ export const App = () => {
       menuFocused.current = false;
       setFocusRequest(0);
     }
+  }, [playing]);
+
+  // Amazon requires apps to release the video player when sent to the
+  // background (Home button, another app, TV off). Close the player; the
+  // position is saved on the way out, so Continue Watching picks it up.
+  useEffect(() => {
+    if (!playing) {
+      return;
+    }
+    const sub = AppState.addEventListener('change', (next) => {
+      console.log(`[app] state ${next}`);
+      if (next === 'background') {
+        setStack((s) =>
+          s[s.length - 1].route.name === 'player' ? s.slice(0, -1) : s,
+        );
+      }
+    });
+    return () => sub.remove();
   }, [playing]);
 
   const navigate: Navigate = useCallback((route) => {
