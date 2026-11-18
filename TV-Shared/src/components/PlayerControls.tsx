@@ -73,6 +73,7 @@ export const PlayerControls = ({
     undefined,
   );
   const visibleRef = useRef(true);
+  const lastDown = useRef<{type?: string; at: number}>({at: 0});
 
   const show = useCallback(() => {
     visibleRef.current = true;
@@ -166,8 +167,17 @@ export const PlayerControls = ({
   useTVEventHandler((evt) => {
     // Shows up in `adb logcat` / the Vega log stream when testing remotes.
     console.log(`[remote] ${evt?.eventType} ${evt?.eventKeyAction ?? ''}`);
-    // Act once per press: ignore key-up when the remote sends down and up.
-    if (evt?.eventKeyAction === 1) {
+    // Act once per press. Vega sends key-down (0) then key-up (1); Fire OS
+    // sends only one event per press, marked 1. So act on a down, and act on
+    // an up only if its down didn't just arrive.
+    const now = Date.now();
+    if (evt?.eventKeyAction === 0) {
+      lastDown.current = {type: evt.eventType, at: now};
+    } else if (
+      evt?.eventKeyAction === 1 &&
+      lastDown.current.type === evt.eventType &&
+      now - lastDown.current.at < 1000
+    ) {
       return;
     }
     const wasVisible = visibleRef.current;

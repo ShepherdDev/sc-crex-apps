@@ -63,15 +63,14 @@ export const LiveScreen = ({
           <NextServicePill start={upcoming[0].start} now={generatedAt} />
         </View>
       ) : null}
-      {hero ? (
+      {hero?.seriesId ? (
         <View style={styles.buttons}>
           <PillButton
-            label="Watch the Latest Message"
-            icon="play"
+            label="Catch Up on Our Latest Series"
             primary
             hasTVPreferredFocus
-            hint={`Plays ${hero.title}`}
-            onPress={() => navigate({name: 'player', message: hero})}
+            hint={`Opens ${hero.seriesTitle || 'the current series'}`}
+            onPress={() => navigate({name: 'series', id: hero.seriesId})}
           />
         </View>
       ) : null}
