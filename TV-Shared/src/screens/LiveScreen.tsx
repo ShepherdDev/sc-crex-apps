@@ -1,12 +1,12 @@
-import React from "react";
-import { ActivityIndicator, Text, View } from "react-native";
-import type { HomeResponse } from "../api/types";
-import { NextServicePill } from "../components/NextServicePill";
-import { PillButton } from "../components/PillButton";
-import { colors, SIDE_MARGIN } from "../config";
-import type { Navigate } from "../navigation";
-import { ErrorView } from "./ErrorView";
-import { scaledStyles } from "../scale";
+import React from 'react';
+import {ActivityIndicator, Text, View} from 'react-native';
+import type {HomeResponse} from '../api/types';
+import {NextServicePill} from '../components/NextServicePill';
+import {PillButton} from '../components/PillButton';
+import {colors, SIDE_MARGIN} from '../config';
+import type {Navigate} from '../navigation';
+import {ErrorView} from './ErrorView';
+import {scaledStyles} from '../scale';
 
 /**
  * Watch Live when nothing is streaming. (When we're live, the menu item
@@ -34,7 +34,7 @@ export const LiveScreen = ({
     );
   }
 
-  const { live, upcoming, hero, generatedAt } = home;
+  const {live, upcoming, hero, generatedAt} = home;
 
   if (live) {
     return (
@@ -47,7 +47,7 @@ export const LiveScreen = ({
             icon="play"
             primary
             hasTVPreferredFocus
-            onPress={() => navigate({ name: "player", live })}
+            onPress={() => navigate({name: 'player', live})}
           />
         </View>
       </View>
@@ -71,7 +71,7 @@ export const LiveScreen = ({
             primary
             hasTVPreferredFocus
             hint={`Plays ${hero.title}`}
-            onPress={() => navigate({ name: "player", message: hero })}
+            onPress={() => navigate({name: 'player', message: hero})}
           />
         </View>
       ) : null}
@@ -88,26 +88,26 @@ const styles = scaledStyles({
   },
   center: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.background,
   },
   eyebrow: {
     color: colors.blue,
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 3,
     marginBottom: 18,
   },
   eyebrowLive: {
     color: colors.text,
     backgroundColor: colors.red,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 3,
     marginBottom: 18,
   },
@@ -115,9 +115,9 @@ const styles = scaledStyles({
     color: colors.text,
     fontSize: 72,
     lineHeight: 80,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: 28,
   },
-  pillRow: { flexDirection: "row", marginBottom: 48 },
-  buttons: { flexDirection: "row", marginTop: 48 },
+  pillRow: {flexDirection: 'row', marginBottom: 48},
+  buttons: {flexDirection: 'row', marginTop: 48},
 });

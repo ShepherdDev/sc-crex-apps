@@ -1,8 +1,8 @@
-import React, { useRef } from "react";
-import { FlatList, Text, View } from "react-native";
-import { colors, SIDE_MARGIN } from "../config";
-import { CARD_WIDTH } from "./Card";
-import { px, scaledStyles } from "../scale";
+import React, {useRef} from 'react';
+import {FlatList, Text, View} from 'react-native';
+import {colors, SIDE_MARGIN} from '../config';
+import {CARD_WIDTH} from './Card';
+import {px, scaledStyles} from '../scale';
 
 const GAP = 28;
 
@@ -13,7 +13,7 @@ interface Props<T> {
   renderCard: (
     item: T,
     onFocus: () => void,
-    index: number
+    index: number,
   ) => React.ReactElement;
   /** Tells the page this row got focus so it can scroll the row into view. */
   onRowFocus?: () => void;
@@ -52,7 +52,7 @@ export function Row<T>({
           offset: px(CARD_WIDTH + GAP) * index,
           index,
         })}
-        renderItem={({ item, index }) =>
+        renderItem={({item, index}) =>
           renderCard(
             item,
             () => {
@@ -63,7 +63,7 @@ export function Row<T>({
                 animated: true,
               });
             },
-            index
+            index,
           )
         }
       />
@@ -71,17 +71,17 @@ export function Row<T>({
   );
 }
 
-const Separator = () => <View style={{ width: px(GAP) }} />;
+const Separator = () => <View style={{width: px(GAP)}} />;
 
 const styles = scaledStyles({
-  row: { marginBottom: 48 },
+  row: {marginBottom: 48},
   title: {
     marginLeft: SIDE_MARGIN,
     marginBottom: 22,
     color: colors.text,
     fontSize: 34,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   // Vertical padding leaves room for the focused card's scale-up.
-  content: { paddingHorizontal: SIDE_MARGIN, paddingVertical: 12 },
+  content: {paddingHorizontal: SIDE_MARGIN, paddingVertical: 12},
 });

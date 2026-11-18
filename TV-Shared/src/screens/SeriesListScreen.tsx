@@ -1,12 +1,12 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
-import { getSeriesList } from "../api/client";
-import type { SeriesListResponse } from "../api/types";
-import { Card } from "../components/Card";
-import { colors, MENU_WIDTH, SIDE_MARGIN } from "../config";
-import type { Navigate } from "../navigation";
-import { ErrorView } from "./ErrorView";
-import { scaledStyles } from "../scale";
+import React, {useCallback, useEffect, useState} from 'react';
+import {ActivityIndicator, FlatList, Text, View} from 'react-native';
+import {getSeriesList} from '../api/client';
+import type {SeriesListResponse} from '../api/types';
+import {Card} from '../components/Card';
+import {colors, MENU_WIDTH, SIDE_MARGIN} from '../config';
+import type {Navigate} from '../navigation';
+import {ErrorView} from './ErrorView';
+import {scaledStyles} from '../scale';
 
 const COLUMNS = 4;
 const GAP = 28;
@@ -30,7 +30,7 @@ export const SeriesListScreen = ({
       setData(await getSeriesList(url));
       setError(null);
     } catch (e: any) {
-      setError(e?.message ?? "Something went wrong.");
+      setError(e?.message ?? 'Something went wrong.');
     }
   }, [url]);
 
@@ -62,7 +62,7 @@ export const SeriesListScreen = ({
         removeClippedSubviews
         columnWrapperStyle={styles.gridRow}
         contentContainerStyle={styles.grid}
-        renderItem={({ item, index }) => (
+        renderItem={({item, index}) => (
           <Card
             image={item.image}
             caption={`${item.title} · ${item.messageCount}`}
@@ -70,7 +70,7 @@ export const SeriesListScreen = ({
             accessibilityHint="Opens this series"
             hasTVPreferredFocus={index === 0}
             width={GRID_CARD_WIDTH}
-            onPress={() => navigate({ name: "series", id: item.id })}
+            onPress={() => navigate({name: 'series', id: item.id})}
           />
         )}
       />
@@ -79,20 +79,20 @@ export const SeriesListScreen = ({
 };
 
 const styles = scaledStyles({
-  page: { flex: 1, backgroundColor: colors.background, paddingTop: 64 },
+  page: {flex: 1, backgroundColor: colors.background, paddingTop: 64},
   center: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.background,
   },
   title: {
     color: colors.text,
     fontSize: 56,
-    fontWeight: "700",
+    fontWeight: '700',
     marginLeft: SIDE_MARGIN,
     marginBottom: 24,
   },
-  grid: { paddingHorizontal: SIDE_MARGIN, paddingBottom: 120, paddingTop: 12 },
-  gridRow: { gap: GAP, marginBottom: 40 },
+  grid: {paddingHorizontal: SIDE_MARGIN, paddingBottom: 120, paddingTop: 12},
+  gridRow: {gap: GAP, marginBottom: 40},
 });

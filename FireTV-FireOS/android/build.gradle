@@ -1,0 +1,23 @@
+buildscript {
+    ext {
+        buildToolsVersion = "36.0.0"
+        // 24 is React Native 0.83's minimum (Fire OS 6 and newer).
+        minSdkVersion = 24
+        compileSdkVersion = 36
+        // Amazon requires 34+ for current Fire OS devices.
+        targetSdkVersion = 36
+        ndkVersion = "27.1.12297006"
+        kotlinVersion = "2.1.20"
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle")
+        classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+    }
+}
+
+apply plugin: "com.facebook.react.rootproject"

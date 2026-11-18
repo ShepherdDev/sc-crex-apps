@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -6,16 +6,16 @@ import {
   Pressable,
   Text,
   View,
-} from "react-native";
-import { getSeries, imageUrl } from "../api/client";
-import { messageMeta, shortDate } from "../api/format";
-import type { Message, SeriesResponse } from "../api/types";
-import { PillButton } from "../components/PillButton";
-import { colors, SIDE_MARGIN } from "../config";
-import type { Navigate } from "../navigation";
-import { ErrorView } from "./ErrorView";
-import { scaledStyles } from "../scale";
-import { useInitialFocus } from "../focus";
+} from 'react-native';
+import {getSeries, imageUrl} from '../api/client';
+import {messageMeta, shortDate} from '../api/format';
+import type {Message, SeriesResponse} from '../api/types';
+import {PillButton} from '../components/PillButton';
+import {colors, SIDE_MARGIN} from '../config';
+import type {Navigate} from '../navigation';
+import {ErrorView} from './ErrorView';
+import {scaledStyles} from '../scale';
+import {useInitialFocus} from '../focus';
 
 /** Big series art on the left, the series' messages on the right. */
 export const SeriesScreen = ({
@@ -33,7 +33,7 @@ export const SeriesScreen = ({
       setData(await getSeries(id));
       setError(null);
     } catch (e: any) {
-      setError(e?.message ?? "Something went wrong.");
+      setError(e?.message ?? 'Something went wrong.');
     }
   }, [id]);
 
@@ -51,7 +51,7 @@ export const SeriesScreen = ({
     );
   }
 
-  const { series, messages } = data;
+  const {series, messages} = data;
   const art = imageUrl(series.image, 960);
   const oldest = messages[messages.length - 1];
   const newest = messages[0];
@@ -60,15 +60,15 @@ export const SeriesScreen = ({
       ? `${shortDate(oldest.date)} to ${shortDate(newest.date)}`
       : newest
       ? shortDate(newest.date)
-      : "";
-  const play = (message: Message) => navigate({ name: "player", message });
+      : '';
+  const play = (message: Message) => navigate({name: 'player', message});
 
   return (
     <View style={styles.page}>
       <View style={styles.left}>
         {art ? (
           <Image
-            source={{ uri: art }}
+            source={{uri: art}}
             aria-label={`${series.title} series art`}
             style={styles.art}
             resizeMode="cover"
@@ -81,8 +81,8 @@ export const SeriesScreen = ({
           {series.title}
         </Text>
         <Text style={styles.meta}>
-          {messages.length} message{messages.length === 1 ? "" : "s"}
-          {span ? ` · ${span}` : ""}
+          {messages.length} message{messages.length === 1 ? '' : 's'}
+          {span ? ` · ${span}` : ''}
         </Text>
         {series.description ? (
           <Text style={styles.description} numberOfLines={4}>
@@ -111,7 +111,7 @@ export const SeriesScreen = ({
           updateCellsBatchingPeriod={50}
           removeClippedSubviews
           contentContainerStyle={styles.listContent}
-          renderItem={({ item, index }) => (
+          renderItem={({item, index}) => (
             <MessageRow
               message={item}
               hasTVPreferredFocus={index === 0}
@@ -145,11 +145,10 @@ const MessageRow = ({
       onPress={onPress}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
-      style={[styles.row, focused && styles.rowFocused]}
-    >
+      style={[styles.row, focused && styles.rowFocused]}>
       {thumb ? (
         <Image
-          source={{ uri: thumb }}
+          source={{uri: thumb}}
           accessible={false}
           aria-label=""
           style={styles.thumb}
@@ -178,7 +177,7 @@ const MessageRow = ({
 const styles = scaledStyles({
   page: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
     backgroundColor: colors.background,
     paddingHorizontal: SIDE_MARGIN,
     paddingTop: 72,
@@ -186,11 +185,11 @@ const styles = scaledStyles({
   },
   center: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.background,
   },
-  left: { width: 640 },
+  left: {width: 640},
   art: {
     width: 640,
     height: 360,
@@ -201,7 +200,7 @@ const styles = scaledStyles({
   eyebrow: {
     color: colors.blue,
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 3,
     marginBottom: 14,
   },
@@ -209,37 +208,37 @@ const styles = scaledStyles({
     color: colors.text,
     fontSize: 72,
     lineHeight: 76,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: 14,
   },
-  meta: { color: colors.textMuted, fontSize: 28 },
+  meta: {color: colors.textMuted, fontSize: 28},
   description: {
-    color: "#D5D9DE",
+    color: '#D5D9DE',
     fontSize: 24,
     lineHeight: 34,
     marginTop: 16,
   },
-  buttonRow: { flexDirection: "row", marginTop: 32 },
-  right: { flex: 1 },
+  buttonRow: {flexDirection: 'row', marginTop: 32},
+  right: {flex: 1},
   heading: {
     color: colors.text,
     fontSize: 34,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: 12,
   },
-  listContent: { paddingBottom: 120, paddingTop: 8 },
+  listContent: {paddingBottom: 120, paddingTop: 8},
   row: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 32,
     padding: 14,
     marginBottom: 10,
     borderRadius: 18,
     borderWidth: 4,
-    borderColor: "transparent",
+    borderColor: 'transparent',
   },
   rowFocused: {
-    backgroundColor: "rgba(67,178,229,0.14)",
+    backgroundColor: 'rgba(67,178,229,0.14)',
     borderColor: colors.blue,
   },
   thumb: {
@@ -248,13 +247,13 @@ const styles = scaledStyles({
     borderRadius: 12,
     backgroundColor: colors.surface,
   },
-  rowText: { flex: 1 },
-  rowMeta: { color: colors.textDim, fontSize: 22, marginBottom: 8 },
+  rowText: {flex: 1},
+  rowMeta: {color: colors.textDim, fontSize: 22, marginBottom: 8},
   rowTitle: {
     color: colors.text,
     fontSize: 36,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: 8,
   },
-  rowDescription: { color: "#D5D9DE", fontSize: 24, lineHeight: 32 },
+  rowDescription: {color: '#D5D9DE', fontSize: 24, lineHeight: 32},
 });

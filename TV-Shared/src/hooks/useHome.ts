@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
-import { getHome } from "../api/client";
-import type { HomeResponse } from "../api/types";
+import {useCallback, useEffect, useState} from 'react';
+import {getHome} from '../api/client';
+import type {HomeResponse} from '../api/types';
 
 /** How often to re-check live status and the latest content. */
 const REFRESH_MS = 60_000;
@@ -18,7 +18,7 @@ export function useHome(paused: boolean) {
       setHome(await getHome());
       setError(null);
     } catch (e: any) {
-      setError(e?.message ?? "Something went wrong.");
+      setError(e?.message ?? 'Something went wrong.');
     }
   }, []);
 
@@ -31,5 +31,5 @@ export function useHome(paused: boolean) {
     return () => clearInterval(timer);
   }, [paused, reload]);
 
-  return { home, error, reload };
+  return {home, error, reload};
 }

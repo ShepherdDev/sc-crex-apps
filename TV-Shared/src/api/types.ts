@@ -37,14 +37,14 @@ export type HomeRow =
   | {
       id: string;
       title: string;
-      type: "messages";
+      type: 'messages';
       seriesId?: string;
       items: Message[];
     }
   | {
       id: string;
       title: string;
-      type: "series";
+      type: 'series';
       seeAllUrl?: string;
       items: Series[];
     };

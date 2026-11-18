@@ -1,20 +1,20 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AppState, BackHandler, StyleSheet, View } from "react-native";
-import type { HomeResponse } from "./api/types";
-import { SideMenu } from "./components/SideMenu";
-import { colors, MENU_WIDTH } from "./config";
-import { useHome } from "./hooks/useHome";
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {AppState, BackHandler, StyleSheet, View} from 'react-native';
+import type {HomeResponse} from './api/types';
+import {SideMenu} from './components/SideMenu';
+import {colors, MENU_WIDTH} from './config';
+import {useHome} from './hooks/useHome';
 import type {
   Navigate,
   PlayerScreenComponent,
   Route,
   Section,
-} from "./navigation";
-import { HomeScreen } from "./screens/HomeScreen";
-import { LiveScreen } from "./screens/LiveScreen";
-import { SeriesListScreen } from "./screens/SeriesListScreen";
-import { SeriesScreen } from "./screens/SeriesScreen";
-import { scaledStyles, setScreenWidth } from "./scale";
+} from './navigation';
+import {HomeScreen} from './screens/HomeScreen';
+import {LiveScreen} from './screens/LiveScreen';
+import {SeriesListScreen} from './screens/SeriesListScreen';
+import {SeriesScreen} from './screens/SeriesScreen';
+import {scaledStyles, setScreenWidth} from './scale';
 
 interface Entry {
   key: number;
@@ -25,14 +25,14 @@ let nextKey = 1;
 /** The first screen of each menu section. */
 function rootRoute(section: Section): Route {
   switch (section) {
-    case "home":
-      return { name: "home" };
-    case "live":
-      return { name: "live" };
-    case "series":
-      return { name: "seriesList", url: "sermons" };
-    case "groups":
-      return { name: "seriesList", url: "lifegroups" };
+    case 'home':
+      return {name: 'home'};
+    case 'live':
+      return {name: 'live'};
+    case 'series':
+      return {name: 'seriesList', url: 'sermons'};
+    case 'groups':
+      return {name: 'seriesList', url: 'lifegroups'};
   }
 }
 
@@ -52,9 +52,9 @@ export const App = ({
   /** The platform's video player (Shaka on Vega, ExoPlayer on Fire OS). */
   PlayerScreen: PlayerScreenComponent;
 }) => {
-  const [section, setSection] = useState<Section>("home");
+  const [section, setSection] = useState<Section>('home');
   const [stack, setStack] = useState<Entry[]>([
-    { key: 0, route: rootRoute("home") },
+    {key: 0, route: rootRoute('home')},
   ]);
   const [focusRequest, setFocusRequest] = useState(0);
   // Measure the real drawing area before showing anything (see scale.ts).
@@ -62,8 +62,8 @@ export const App = ({
   const menuFocused = useRef(false);
 
   const top = stack[stack.length - 1].route;
-  const playing = top.name === "player";
-  const { home, error, reload } = useHome(playing);
+  const playing = top.name === 'player';
+  const {home, error, reload} = useHome(playing);
 
   // The menu is hidden during playback, so it can't report losing focus.
   // Reset its state so leaving the player doesn't pull focus into the menu.
@@ -81,11 +81,11 @@ export const App = ({
     if (!playing) {
       return;
     }
-    const sub = AppState.addEventListener("change", (next) => {
+    const sub = AppState.addEventListener('change', (next) => {
       console.log(`[app] state ${next}`);
-      if (next === "background") {
+      if (next === 'background') {
         setStack((s) =>
-          s[s.length - 1].route.name === "player" ? s.slice(0, -1) : s
+          s[s.length - 1].route.name === 'player' ? s.slice(0, -1) : s,
         );
       }
     });
@@ -93,34 +93,34 @@ export const App = ({
   }, [playing]);
 
   const navigate: Navigate = useCallback((route) => {
-    setStack((s) => [...s, { key: nextKey++, route }]);
+    setStack((s) => [...s, {key: nextKey++, route}]);
   }, []);
   const pop = useCallback(
     () => setStack((s) => (s.length > 1 ? s.slice(0, -1) : s)),
-    []
+    [],
   );
 
   const selectSection = useCallback(
     (next: Section) => {
       // When we're live, Watch Live goes straight to the stream.
-      if (next === "live" && home?.live) {
-        navigate({ name: "player", live: home.live });
+      if (next === 'live' && home?.live) {
+        navigate({name: 'player', live: home.live});
         return;
       }
       setSection(next);
-      setStack([{ key: nextKey++, route: rootRoute(next) }]);
+      setStack([{key: nextKey++, route: rootRoute(next)}]);
     },
-    [home?.live, navigate]
+    [home?.live, navigate],
   );
 
   useEffect(() => {
-    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (stack.length > 1) {
         pop();
       } else if (!menuFocused.current) {
         setFocusRequest((n) => n + 1);
-      } else if (section !== "home") {
-        selectSection("home");
+      } else if (section !== 'home') {
+        selectSection('home');
       } else {
         return false; // let Vega close the app
       }
@@ -160,8 +160,7 @@ export const App = ({
           return (
             <View
               key={entry.key}
-              style={active ? styles.screen : styles.hidden}
-            >
+              style={active ? styles.screen : styles.hidden}>
               {renderRoute(entry.route, {
                 navigate,
                 pop,
@@ -189,11 +188,11 @@ function renderRoute(
     error: string | null;
     reload: () => void;
     PlayerScreen: PlayerScreenComponent;
-  }
+  },
 ) {
-  const { navigate, pop, active, home, error, reload, PlayerScreen } = ctx;
+  const {navigate, pop, active, home, error, reload, PlayerScreen} = ctx;
   switch (route.name) {
-    case "home":
+    case 'home':
       return (
         <HomeScreen
           home={home}
@@ -203,7 +202,7 @@ function renderRoute(
           active={active}
         />
       );
-    case "live":
+    case 'live':
       return (
         <LiveScreen
           home={home}
@@ -212,11 +211,11 @@ function renderRoute(
           navigate={navigate}
         />
       );
-    case "series":
+    case 'series':
       return <SeriesScreen id={route.id} navigate={navigate} />;
-    case "seriesList":
+    case 'seriesList':
       return <SeriesListScreen url={route.url} navigate={navigate} />;
-    case "player":
+    case 'player':
       return (
         <PlayerScreen
           message={route.message}
@@ -228,16 +227,16 @@ function renderRoute(
 }
 
 const styles = scaledStyles({
-  root: { flex: 1, backgroundColor: colors.background },
+  root: {flex: 1, backgroundColor: colors.background},
   content: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     bottom: 0,
     right: 0,
     left: MENU_WIDTH,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
-  fullScreen: { left: 0 },
-  screen: { ...StyleSheet.absoluteFillObject },
-  hidden: { display: "none" },
+  fullScreen: {left: 0},
+  screen: {...StyleSheet.absoluteFillObject},
+  hidden: {display: 'none'},
 });

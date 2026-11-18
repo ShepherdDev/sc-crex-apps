@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import {useEffect, useRef} from 'react';
 
 /**
  * On Vega, hasTVPreferredFocus takes focus again on every re-render while

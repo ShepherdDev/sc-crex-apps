@@ -1,15 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
-import { TVFocusGuideView } from "../platform/tv";
-import { Image, Pressable, Text, View } from "react-native";
-import { colors, MENU_WIDTH } from "../config";
-import type { Section } from "../navigation";
-import { scaledStyles } from "../scale";
+import React, {useEffect, useRef, useState} from 'react';
+import {TVFocusGuideView} from '../platform/tv';
+import {Image, Pressable, Text, View} from 'react-native';
+import {colors, MENU_WIDTH} from '../config';
+import type {Section} from '../navigation';
+import {scaledStyles} from '../scale';
 
-const ITEMS: { section: Section; label: string; hint: string }[] = [
-  { section: "home", label: "Home", hint: "Go to the home screen" },
-  { section: "live", label: "Watch Live", hint: "Watch the live stream" },
-  { section: "series", label: "Series", hint: "Browse all message series" },
-  { section: "groups", label: "Life Groups", hint: "Browse Life Group videos" },
+const ITEMS: {section: Section; label: string; hint: string}[] = [
+  {section: 'home', label: 'Home', hint: 'Go to the home screen'},
+  {section: 'live', label: 'Watch Live', hint: 'Watch the live stream'},
+  {section: 'series', label: 'Series', hint: 'Browse all message series'},
+  {section: 'groups', label: 'Life Groups', hint: 'Browse Life Group videos'},
 ];
 
 interface Props {
@@ -48,7 +48,7 @@ export const SideMenu = ({
   return (
     <View style={styles.rail}>
       <Image
-        source={require("../assets/logo.png")}
+        source={require('../assets/logo.png')}
         aria-label="Shepherd Church"
         style={styles.logo}
         resizeMode="contain"
@@ -64,7 +64,7 @@ export const SideMenu = ({
             label={item.label}
             hint={item.hint}
             current={item.section === current}
-            showLive={item.section === "live" && isLive}
+            showLive={item.section === 'live' && isLive}
             onPress={() => onSelect(item.section)}
             onFocusChange={onFocusChange}
           />
@@ -119,13 +119,11 @@ const MenuItem = ({
         styles.item,
         current && styles.itemCurrent,
         focused && styles.itemFocused,
-      ]}
-    >
+      ]}>
       <Icon section={section} color={color} />
       <Text
         numberOfLines={1}
-        style={[styles.label, { color }, (current || focused) && styles.bold]}
-      >
+        style={[styles.label, {color}, (current || focused) && styles.bold]}>
         {label}
       </Text>
       {showLive ? (
@@ -138,37 +136,37 @@ const MenuItem = ({
 };
 
 /** Simple icons drawn with views, so we don't need an SVG library. */
-const Icon = ({ section, color }: { section: Section; color: string }) => {
+const Icon = ({section, color}: {section: Section; color: string}) => {
   switch (section) {
-    case "home":
+    case 'home':
       return (
         <View style={styles.icon}>
-          <View style={[styles.roof, { borderBottomColor: color }]} />
-          <View style={[styles.house, { borderColor: color }]} />
+          <View style={[styles.roof, {borderBottomColor: color}]} />
+          <View style={[styles.house, {borderColor: color}]} />
         </View>
       );
-    case "live":
+    case 'live':
       return (
         <View style={styles.icon}>
-          <View style={[styles.ring, { borderColor: color }]}>
-            <View style={[styles.dot, { backgroundColor: color }]} />
+          <View style={[styles.ring, {borderColor: color}]}>
+            <View style={[styles.dot, {backgroundColor: color}]} />
           </View>
         </View>
       );
-    case "series":
+    case 'series':
       return (
         <View style={styles.icon}>
-          <View style={[styles.stackBack, { borderColor: color }]} />
-          <View style={[styles.stackFront, { borderColor: color }]} />
+          <View style={[styles.stackBack, {borderColor: color}]} />
+          <View style={[styles.stackFront, {borderColor: color}]} />
         </View>
       );
-    case "groups":
+    case 'groups':
       return (
         <View style={[styles.icon, styles.people]}>
           {[0, 1].map((i) => (
             <View key={i} style={styles.person}>
-              <View style={[styles.head, { borderColor: color }]} />
-              <View style={[styles.body, { borderColor: color }]} />
+              <View style={[styles.head, {borderColor: color}]} />
+              <View style={[styles.body, {borderColor: color}]} />
             </View>
           ))}
         </View>
@@ -178,53 +176,53 @@ const Icon = ({ section, color }: { section: Section; color: string }) => {
 
 const styles = scaledStyles({
   rail: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     bottom: 0,
     left: 0,
     width: MENU_WIDTH,
-    backgroundColor: "#060708",
+    backgroundColor: '#060708',
     borderRightWidth: 1,
-    borderRightColor: "rgba(255,255,255,0.08)",
+    borderRightColor: 'rgba(255,255,255,0.08)',
     paddingTop: 56,
     paddingHorizontal: 20,
   },
-  logo: { width: 256, height: 43, marginLeft: 12, marginBottom: 64 },
-  items: { gap: 12 },
+  logo: {width: 256, height: 43, marginLeft: 12, marginBottom: 64},
+  items: {gap: 12},
   item: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 16,
     height: 72,
     paddingHorizontal: 16,
     borderRadius: 14,
   },
-  itemCurrent: { backgroundColor: "rgba(67,178,229,0.14)" },
+  itemCurrent: {backgroundColor: 'rgba(67,178,229,0.14)'},
   itemFocused: {
     backgroundColor: colors.focusRing,
-    transform: [{ scale: 1.04 }],
+    transform: [{scale: 1.04}],
   },
-  label: { fontSize: 26, fontWeight: "500", flexShrink: 1 },
-  bold: { fontWeight: "700" },
+  label: {fontSize: 26, fontWeight: '500', flexShrink: 1},
+  bold: {fontWeight: '700'},
   liveTag: {
     backgroundColor: colors.red,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    marginLeft: "auto",
+    marginLeft: 'auto',
   },
   liveTagText: {
     color: colors.text,
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 1,
   },
   // Icons, 30 x 30
   icon: {
     width: 30,
     height: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   roof: {
     width: 0,
@@ -232,21 +230,21 @@ const styles = scaledStyles({
     borderLeftWidth: 15,
     borderRightWidth: 15,
     borderBottomWidth: 12,
-    borderLeftColor: "transparent",
-    borderRightColor: "transparent",
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
   },
-  house: { width: 22, height: 14, borderWidth: 3, borderTopWidth: 0 },
+  house: {width: 22, height: 14, borderWidth: 3, borderTopWidth: 0},
   ring: {
     width: 28,
     height: 28,
     borderRadius: 14,
     borderWidth: 3,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  dot: { width: 10, height: 10, borderRadius: 5 },
+  dot: {width: 10, height: 10, borderRadius: 5},
   stackBack: {
-    position: "absolute",
+    position: 'absolute',
     top: 2,
     left: 6,
     width: 22,
@@ -256,7 +254,7 @@ const styles = scaledStyles({
     opacity: 0.6,
   },
   stackFront: {
-    position: "absolute",
+    position: 'absolute',
     top: 10,
     left: 1,
     width: 22,
@@ -264,9 +262,9 @@ const styles = scaledStyles({
     borderWidth: 3,
     borderRadius: 3,
   },
-  people: { flexDirection: "row", gap: 2, alignItems: "flex-end" },
-  person: { alignItems: "center" },
-  head: { width: 11, height: 11, borderRadius: 6, borderWidth: 3 },
+  people: {flexDirection: 'row', gap: 2, alignItems: 'flex-end'},
+  person: {alignItems: 'center'},
+  head: {width: 11, height: 11, borderRadius: 6, borderWidth: 3},
   body: {
     width: 14,
     height: 9,

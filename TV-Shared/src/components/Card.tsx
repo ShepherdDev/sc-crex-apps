@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
-import { imageUrl } from "../api/client";
-import { colors } from "../config";
-import { px, scaledStyles } from "../scale";
-import { useInitialFocus } from "../focus";
+import React, {useState} from 'react';
+import {Image, Pressable, Text, View} from 'react-native';
+import {imageUrl} from '../api/client';
+import {colors} from '../config';
+import {px, scaledStyles} from '../scale';
+import {useInitialFocus} from '../focus';
 
 export const CARD_WIDTH = 400;
 export const CARD_HEIGHT = 225;
@@ -43,7 +43,7 @@ export const Card = ({
   const size =
     width === CARD_WIDTH
       ? null
-      : { width: px(width), height: px((width * CARD_HEIGHT) / CARD_WIDTH) };
+      : {width: px(width), height: px((width * CARD_HEIGHT) / CARD_WIDTH)};
   return (
     <Pressable
       role="button"
@@ -56,14 +56,13 @@ export const Card = ({
         onFocus?.();
       }}
       onBlur={() => setFocused(false)}
-      style={[styles.wrap, size && { width: size.width }]}
-    >
+      style={[styles.wrap, size && {width: size.width}]}>
       <View style={[styles.art, size, focused && styles.artFocused]}>
         {src ? (
           <Image
             accessible={false}
             aria-label=""
-            source={{ uri: src }}
+            source={{uri: src}}
             style={styles.image}
             resizeMode="cover"
           />
@@ -71,7 +70,7 @@ export const Card = ({
         {overlayTitle ? (
           // Dark fade behind the title only; the artwork stays full brightness.
           <Image
-            source={require("../assets/fade-down.png")}
+            source={require('../assets/fade-down.png')}
             aria-hidden
             accessible={false}
             style={styles.titleShade}
@@ -88,7 +87,7 @@ export const Card = ({
             <View
               style={[
                 styles.fill,
-                { width: `${Math.round(Math.min(1, progress) * 100)}%` },
+                {width: `${Math.round(Math.min(1, progress) * 100)}%`},
               ]}
             />
           </View>
@@ -97,8 +96,7 @@ export const Card = ({
       {caption ? (
         <Text
           numberOfLines={1}
-          style={[styles.caption, focused && styles.captionFocused]}
-        >
+          style={[styles.caption, focused && styles.captionFocused]}>
           {caption}
         </Text>
       ) : null}
@@ -107,46 +105,46 @@ export const Card = ({
 };
 
 const styles = scaledStyles({
-  wrap: { width: CARD_WIDTH },
+  wrap: {width: CARD_WIDTH},
   art: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     borderRadius: 14,
-    overflow: "hidden",
+    overflow: 'hidden',
     backgroundColor: colors.surface,
     borderWidth: 4,
-    borderColor: "transparent",
+    borderColor: 'transparent',
   },
-  artFocused: { borderColor: colors.blue, transform: [{ scale: 1.05 }] },
-  image: { width: "100%", height: "100%" },
+  artFocused: {borderColor: colors.blue, transform: [{scale: 1.05}]},
+  image: {width: '100%', height: '100%'},
   titleShade: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
-    width: "100%", // Vega's Image needs a real width, not just left/right
+    width: '100%', // Vega's Image needs a real width, not just left/right
     bottom: 0,
     height: 150,
   },
   overlayTitle: {
-    position: "absolute",
+    position: 'absolute',
     left: 20,
     right: 20,
     bottom: 22,
     color: colors.text,
     fontSize: 28,
-    fontWeight: "700",
-    textShadowColor: "rgba(0,0,0,0.8)",
-    textShadowOffset: { width: 0, height: 1 },
+    fontWeight: '700',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 4,
   },
   track: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
     height: 8,
-    backgroundColor: "rgba(255,255,255,0.25)",
+    backgroundColor: 'rgba(255,255,255,0.25)',
   },
-  fill: { height: 8, backgroundColor: colors.blue },
-  caption: { marginTop: 12, color: colors.textDim, fontSize: 22 },
-  captionFocused: { color: colors.text },
+  fill: {height: 8, backgroundColor: colors.blue},
+  caption: {marginTop: 12, color: colors.textDim, fontSize: 22},
+  captionFocused: {color: colors.text},
 });

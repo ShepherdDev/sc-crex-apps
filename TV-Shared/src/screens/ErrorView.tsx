@@ -1,8 +1,8 @@
-import React from "react";
-import { Text, View } from "react-native";
-import { PillButton } from "../components/PillButton";
-import { colors } from "../config";
-import { scaledStyles } from "../scale";
+import React from 'react';
+import {Text, View} from 'react-native';
+import {PillButton} from '../components/PillButton';
+import {colors} from '../config';
+import {scaledStyles} from '../scale';
 
 export const ErrorView = ({
   message,
@@ -26,22 +26,22 @@ export const ErrorView = ({
 const styles = scaledStyles({
   wrap: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.background,
     padding: 96,
   },
   title: {
     color: colors.text,
     fontSize: 44,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: 16,
   },
   message: {
     color: colors.textMuted,
     fontSize: 28,
     marginBottom: 44,
-    textAlign: "center",
+    textAlign: 'center',
     maxWidth: 1200,
   },
 });

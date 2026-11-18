@@ -1,17 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native";
-import { imageUrl } from "../api/client";
-import { messageMeta, startTimeLabel } from "../api/format";
-import type { HomeResponse, Message, Series } from "../api/types";
-import { Card } from "../components/Card";
-import { NextServicePill } from "../components/NextServicePill";
-import { PillButton } from "../components/PillButton";
-import { Row } from "../components/Row";
-import { colors, SIDE_MARGIN } from "../config";
-import { getContinueWatching, Progress } from "../storage/progress";
-import type { Navigate } from "../navigation";
-import { ErrorView } from "./ErrorView";
-import { px, scaledStyles } from "../scale";
+import React, {useEffect, useRef, useState} from 'react';
+import {ActivityIndicator, Image, ScrollView, Text, View} from 'react-native';
+import {imageUrl} from '../api/client';
+import {messageMeta, startTimeLabel} from '../api/format';
+import type {HomeResponse, Message, Series} from '../api/types';
+import {Card} from '../components/Card';
+import {NextServicePill} from '../components/NextServicePill';
+import {PillButton} from '../components/PillButton';
+import {Row} from '../components/Row';
+import {colors, SIDE_MARGIN} from '../config';
+import {getContinueWatching, Progress} from '../storage/progress';
+import type {Navigate} from '../navigation';
+import {ErrorView} from './ErrorView';
+import {px, scaledStyles} from '../scale';
 
 const HERO_HEIGHT = 652;
 const HERO_IMAGE_WIDTH = 1160;
@@ -45,10 +45,10 @@ export const HomeScreen = ({
   const scrollToRow = (id: string) => {
     const y = rowY.current[id];
     if (y !== undefined) {
-      scroll.current?.scrollTo({ y: Math.max(0, y - px(80)), animated: true });
+      scroll.current?.scrollTo({y: Math.max(0, y - px(80)), animated: true});
     }
   };
-  const scrollToTop = () => scroll.current?.scrollTo({ y: 0, animated: true });
+  const scrollToTop = () => scroll.current?.scrollTo({y: 0, animated: true});
 
   if (!home) {
     return error ? (
@@ -60,27 +60,25 @@ export const HomeScreen = ({
     );
   }
 
-  const { live, hero, upcoming, generatedAt } = home;
+  const {live, hero, upcoming, generatedAt} = home;
   const next = upcoming[0];
   const heroImage = imageUrl(hero?.image, HERO_IMAGE_WIDTH);
 
-  const playMessage = (message: Message) =>
-    navigate({ name: "player", message });
+  const playMessage = (message: Message) => navigate({name: 'player', message});
   const openSeries = (s: Series | string) =>
-    navigate({ name: "series", id: typeof s === "string" ? s : s.id });
+    navigate({name: 'series', id: typeof s === 'string' ? s : s.id});
 
   return (
     <ScrollView
       ref={scroll}
       style={styles.page}
-      showsVerticalScrollIndicator={false}
-    >
+      showsVerticalScrollIndicator={false}>
       {/* Banner */}
       <View style={styles.hero}>
         {heroImage ? (
           <Image
-            source={{ uri: heroImage }}
-            aria-label={`${hero?.seriesTitle ?? "Series"} artwork`}
+            source={{uri: heroImage}}
+            aria-label={`${hero?.seriesTitle ?? 'Series'} artwork`}
             style={styles.heroImage}
             resizeMode="cover"
           />
@@ -88,14 +86,14 @@ export const HomeScreen = ({
         <View style={styles.heroShade} />
         {/* Smooth fades from the text panel into the art, and into the rows below. */}
         <Image
-          source={require("../assets/fade-right.png")}
+          source={require('../assets/fade-right.png')}
           aria-hidden
           accessible={false}
           style={styles.fadeRight}
           resizeMode="stretch"
         />
         <Image
-          source={require("../assets/fade-down.png")}
+          source={require('../assets/fade-down.png')}
           aria-hidden
           accessible={false}
           style={styles.fadeBottom}
@@ -134,7 +132,7 @@ export const HomeScreen = ({
                   primary
                   hasTVPreferredFocus
                   onFocus={scrollToTop}
-                  onPress={() => navigate({ name: "player", live })}
+                  onPress={() => navigate({name: 'player', live})}
                 />
               </View>
             </>
@@ -145,7 +143,7 @@ export const HomeScreen = ({
                 {hero.title}
               </Text>
               <Text style={styles.heroMeta} numberOfLines={1}>
-                {[hero.seriesTitle, hero.speaker].filter(Boolean).join(" · ")}
+                {[hero.seriesTitle, hero.speaker].filter(Boolean).join(' · ')}
               </Text>
               {hero.description ? (
                 <Text style={styles.heroDescription} numberOfLines={3}>
@@ -178,7 +176,7 @@ export const HomeScreen = ({
           title="Continue Watching"
           items={continueItems}
           keyOf={(p) => p.message.id}
-          onRowFocus={() => scrollToRow("continue")}
+          onRowFocus={() => scrollToRow('continue')}
           renderCard={(p, onFocus) => (
             <Card
               image={p.message.image}
@@ -197,9 +195,8 @@ export const HomeScreen = ({
       {home.rows.map((row) => (
         <View
           key={row.id}
-          onLayout={(e) => (rowY.current[row.id] = e.nativeEvent.layout.y)}
-        >
-          {row.type === "messages" ? (
+          onLayout={(e) => (rowY.current[row.id] = e.nativeEvent.layout.y)}>
+          {row.type === 'messages' ? (
             <Row
               title={row.title}
               items={row.items}
@@ -227,7 +224,7 @@ export const HomeScreen = ({
                 <Card
                   image={s.image}
                   caption={`${s.title} · ${s.messageCount} message${
-                    s.messageCount === 1 ? "" : "s"
+                    s.messageCount === 1 ? '' : 's'
                   }`}
                   accessibilityLabel={`${s.title} series`}
                   accessibilityHint="Opens this series"
@@ -237,13 +234,13 @@ export const HomeScreen = ({
               )}
             />
           )}
-          {row.type === "series" && row.seeAllUrl ? (
+          {row.type === 'series' && row.seeAllUrl ? (
             <View style={styles.seeAll}>
               <PillButton
                 label={`See all ${row.title}`}
                 onFocus={() => scrollToRow(row.id)}
                 onPress={() =>
-                  navigate({ name: "seriesList", url: row.seeAllUrl! })
+                  navigate({name: 'seriesList', url: row.seeAllUrl!})
                 }
               />
             </View>
@@ -256,16 +253,16 @@ export const HomeScreen = ({
 };
 
 const styles = scaledStyles({
-  page: { flex: 1, backgroundColor: colors.background },
+  page: {flex: 1, backgroundColor: colors.background},
   center: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.background,
   },
-  hero: { height: HERO_HEIGHT, marginBottom: 24 },
+  hero: {height: HERO_HEIGHT, marginBottom: 24},
   heroImage: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     right: 0,
     width: HERO_IMAGE_WIDTH,
@@ -273,7 +270,7 @@ const styles = scaledStyles({
   },
   // Solid panel under the text so it stays readable over any artwork.
   heroShade: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     width: SHADE_WIDTH,
@@ -281,30 +278,30 @@ const styles = scaledStyles({
     backgroundColor: colors.background,
   },
   fadeRight: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: SHADE_WIDTH,
     width: 240,
     height: HERO_HEIGHT,
   },
   fadeBottom: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
-    width: "100%", // Vega's Image needs a real width, not just left/right
+    width: '100%', // Vega's Image needs a real width, not just left/right
     bottom: 0,
     height: 140,
   },
   topBar: {
-    position: "absolute",
+    position: 'absolute',
     top: 60,
     right: 96,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
-  heroText: { position: "absolute", top: 160, left: SIDE_MARGIN, width: 640 },
+  heroText: {position: 'absolute', top: 160, left: SIDE_MARGIN, width: 640},
   eyebrow: {
     color: colors.blue,
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 3,
     marginBottom: 18,
   },
@@ -312,26 +309,26 @@ const styles = scaledStyles({
     color: colors.text,
     fontSize: 84,
     lineHeight: 88,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: 18,
   },
-  heroMeta: { color: colors.textMuted, fontSize: 28 },
+  heroMeta: {color: colors.textMuted, fontSize: 28},
   heroDescription: {
-    color: "#E3E6EA",
+    color: '#E3E6EA',
     fontSize: 26,
     lineHeight: 36,
     marginTop: 18,
   },
-  heroButtons: { flexDirection: "row", gap: 20, marginTop: 36 },
+  heroButtons: {flexDirection: 'row', gap: 20, marginTop: 36},
   liveLine: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 16,
     marginBottom: 18,
   },
   liveBadge: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
     backgroundColor: colors.red,
     borderRadius: 8,
@@ -347,14 +344,14 @@ const styles = scaledStyles({
   liveBadgeText: {
     color: colors.text,
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 3,
   },
   seeAll: {
     marginLeft: SIDE_MARGIN,
     marginTop: -24,
     marginBottom: 48,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
-  bottomSpace: { height: 120 },
+  bottomSpace: {height: 120},
 });

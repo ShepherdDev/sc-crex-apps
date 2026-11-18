@@ -1,4 +1,4 @@
-import type { Message } from "../api/types";
+import type {Message} from '../api/types';
 
 interface KeyValueStore {
   getItem(key: string): Promise<string | null>;
@@ -21,11 +21,11 @@ const memoryStore: KeyValueStore = {
 export function getStore(): KeyValueStore {
   if (!store) {
     try {
-      store = require("@react-native-async-storage/async-storage").default;
+      store = require('@react-native-async-storage/async-storage').default;
     } catch (e) {
       console.warn(
-        "AsyncStorage unavailable; Continue Watching is memory only",
-        e
+        'AsyncStorage unavailable; Continue Watching is memory only',
+        e,
       );
     }
     store = store ?? memoryStore;
@@ -41,7 +41,7 @@ export interface Progress {
   updatedAt: number;
 }
 
-const KEY = "shepherd.progress.v1";
+const KEY = 'shepherd.progress.v1';
 const MAX_ITEMS = 20;
 /** Ignore the first minute and the last five (people who barely started or finished). */
 const MIN_POSITION = 60;
@@ -68,7 +68,7 @@ async function writeAll(items: Progress[]) {
 export const getContinueWatching = readAll;
 
 export async function getResumePosition(
-  messageId: string
+  messageId: string,
 ): Promise<number | undefined> {
   const found = (await readAll()).find((p) => p.message.id === messageId);
   return found?.position;
@@ -77,7 +77,7 @@ export async function getResumePosition(
 export async function saveProgress(
   message: Message,
   position: number,
-  duration: number
+  duration: number,
 ) {
   const others = (await readAll()).filter((p) => p.message.id !== message.id);
   const finished = duration > 0 && position > duration - END_MARGIN;
@@ -86,7 +86,7 @@ export async function saveProgress(
     return;
   }
   await writeAll([
-    { message, position, duration, updatedAt: Date.now() },
+    {message, position, duration, updatedAt: Date.now()},
     ...others,
   ]);
 }

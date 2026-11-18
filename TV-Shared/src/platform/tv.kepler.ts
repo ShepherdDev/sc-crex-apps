@@ -2,4 +2,4 @@
 export {
   TVFocusGuideView,
   useTVEventHandler,
-} from "@amazon-devices/react-native-kepler";
+} from '@amazon-devices/react-native-kepler';

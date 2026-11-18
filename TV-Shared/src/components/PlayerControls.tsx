@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Image, Text, View } from "react-native";
-import { playbackTime } from "../api/format";
-import { colors } from "../config";
-import { useTVEventHandler } from "../platform/tv";
-import { scaledStyles } from "../scale";
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Image, Text, View} from 'react-native';
+import {playbackTime} from '../api/format';
+import {colors} from '../config';
+import {useTVEventHandler} from '../platform/tv';
+import {scaledStyles} from '../scale';
 
 /**
  * What the controls need from a player. Vega's VideoPlayer matches this
@@ -21,7 +21,7 @@ export interface Playback {
 const HIDE_AFTER_MS = 5000;
 const SKIP_SECONDS = 10;
 
-type ButtonId = "back" | "play" | "forward" | "cc";
+type ButtonId = 'back' | 'play' | 'forward' | 'cc';
 
 interface Props {
   video: Playback;
@@ -59,18 +59,18 @@ export const PlayerControls = ({
   handlesMediaKeys = false,
 }: Props) => {
   const buttons: ButtonId[] = [
-    ...(live ? [] : (["back"] as ButtonId[])),
-    "play",
-    ...(live ? [] : (["forward"] as ButtonId[])),
-    ...(hasCaptions ? (["cc"] as ButtonId[]) : []),
+    ...(live ? [] : (['back'] as ButtonId[])),
+    'play',
+    ...(live ? [] : (['forward'] as ButtonId[])),
+    ...(hasCaptions ? (['cc'] as ButtonId[]) : []),
   ];
 
   const [visible, setVisible] = useState(true);
-  const [selected, setSelected] = useState<ButtonId>("play");
+  const [selected, setSelected] = useState<ButtonId>('play');
   const [paused, setPaused] = useState(false);
-  const [time, setTime] = useState({ current: 0, duration: 0 });
+  const [time, setTime] = useState({current: 0, duration: 0});
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
+    undefined,
   );
   const visibleRef = useRef(true);
 
@@ -85,7 +85,7 @@ export const PlayerControls = ({
       if (!video.paused) {
         visibleRef.current = false;
         setVisible(false);
-        setSelected("play");
+        setSelected('play');
       }
     }, HIDE_AFTER_MS);
   }, [video]);
@@ -135,22 +135,22 @@ export const PlayerControls = ({
       const end = Number.isFinite(video.duration) ? video.duration : Infinity;
       video.currentTime = Math.min(
         Math.max(0, (video.currentTime || 0) + seconds),
-        end - 1
+        end - 1,
       );
       show();
     },
-    [video, live, show]
+    [video, live, show],
   );
 
   const press = (id: ButtonId) => {
     switch (id) {
-      case "back":
+      case 'back':
         return skip(-SKIP_SECONDS);
-      case "forward":
+      case 'forward':
         return skip(SKIP_SECONDS);
-      case "play":
+      case 'play':
         return togglePlay();
-      case "cc":
+      case 'cc':
         onToggleCaptions();
         return show();
     }
@@ -172,25 +172,27 @@ export const PlayerControls = ({
     switch (evt?.eventType) {
       // Remote media buttons. On Vega the player already acts on these, so
       // we only show the controls; elsewhere we do the work ourselves.
-      case "playpause":
-      case "pause":
+      case 'playpause':
+      case 'playPause': // react-native-tvos (Fire OS) spelling
+      case 'pause':
         return handlesMediaKeys ? togglePlay() : show();
-      case "rewind":
-      case "skip_backward":
+      case 'rewind':
+      case 'skip_backward':
         return handlesMediaKeys ? skip(-SKIP_SECONDS) : show();
-      case "forward":
-      case "fastforward":
-      case "fast_forward":
-      case "skip_forward":
+      case 'forward':
+      case 'fastforward':
+      case 'fastForward': // react-native-tvos (Fire OS) spelling
+      case 'fast_forward':
+      case 'skip_forward':
         return handlesMediaKeys ? skip(SKIP_SECONDS) : show();
-      case "back":
+      case 'back':
         return; // the app's Back handler closes the player
-      case "left":
+      case 'left':
         return wasVisible ? move(-1) : show();
-      case "right":
+      case 'right':
         return wasVisible ? move(1) : show();
-      case "select":
-      case "enter":
+      case 'select':
+      case 'enter':
         return wasVisible ? press(selected) : show();
       default:
         return show();
@@ -208,7 +210,7 @@ export const PlayerControls = ({
   return (
     <View style={styles.wrap} pointerEvents="none">
       <Image
-        source={require("../assets/fade-down.png")}
+        source={require('../assets/fade-down.png')}
         aria-hidden
         accessible={false}
         style={styles.shade}
@@ -235,8 +237,8 @@ export const PlayerControls = ({
           <View style={styles.timeline}>
             <Text style={styles.time}>{playbackTime(time.current)}</Text>
             <View style={styles.track}>
-              <View style={[styles.fill, { flex: progress }]} />
-              <View style={{ flex: 1 - progress }} />
+              <View style={[styles.fill, {flex: progress}]} />
+              <View style={{flex: 1 - progress}} />
             </View>
             <Text style={styles.time}>{playbackTime(time.duration)}</Text>
           </View>
@@ -245,25 +247,25 @@ export const PlayerControls = ({
         <View style={styles.buttons}>
           <View style={styles.transport}>
             {live ? null : (
-              <Button selected={on("back")} label="Back 10 seconds">
-                <Text style={[styles.glyph, on("back") && styles.glyphOn]}>
+              <Button selected={on('back')} label="Back 10 seconds">
+                <Text style={[styles.glyph, on('back') && styles.glyphOn]}>
                   −10
                 </Text>
               </Button>
             )}
-            <Button big selected={on("play")} label={paused ? "Play" : "Pause"}>
+            <Button big selected={on('play')} label={paused ? 'Play' : 'Pause'}>
               {paused ? (
-                <View style={[styles.playIcon, on("play") && styles.playOn]} />
+                <View style={[styles.playIcon, on('play') && styles.playOn]} />
               ) : (
                 <View style={styles.pauseIcon}>
-                  <View style={[styles.pauseBar, on("play") && styles.barOn]} />
-                  <View style={[styles.pauseBar, on("play") && styles.barOn]} />
+                  <View style={[styles.pauseBar, on('play') && styles.barOn]} />
+                  <View style={[styles.pauseBar, on('play') && styles.barOn]} />
                 </View>
               )}
             </Button>
             {live ? null : (
-              <Button selected={on("forward")} label="Forward 10 seconds">
-                <Text style={[styles.glyph, on("forward") && styles.glyphOn]}>
+              <Button selected={on('forward')} label="Forward 10 seconds">
+                <Text style={[styles.glyph, on('forward') && styles.glyphOn]}>
                   +10
                 </Text>
               </Button>
@@ -273,17 +275,16 @@ export const PlayerControls = ({
           {hasCaptions ? (
             <Button
               wide
-              selected={on("cc")}
-              label={captionsOn ? "Captions on" : "Captions off"}
-            >
+              selected={on('cc')}
+              label={captionsOn ? 'Captions on' : 'Captions off'}>
               <View style={styles.ccRow}>
-                <View style={[styles.ccBox, on("cc") && styles.ccBoxOn]}>
-                  <Text style={[styles.ccText, on("cc") && styles.glyphOn]}>
+                <View style={[styles.ccBox, on('cc') && styles.ccBoxOn]}>
+                  <Text style={[styles.ccText, on('cc') && styles.glyphOn]}>
                     CC
                   </Text>
                 </View>
-                <Text style={[styles.ccLabel, on("cc") && styles.glyphOn]}>
-                  {captionsOn ? "On" : "Off"}
+                <Text style={[styles.ccLabel, on('cc') && styles.glyphOn]}>
+                  {captionsOn ? 'On' : 'Off'}
                 </Text>
               </View>
             </Button>
@@ -316,30 +317,29 @@ const Button = ({
       big && styles.buttonBig,
       wide && styles.buttonWide,
       selected && styles.buttonOn,
-    ]}
-  >
+    ]}>
     {children}
   </View>
 );
 
 const styles = scaledStyles({
-  wrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  wrap: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0},
   shade: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
-    width: "100%", // Vega's Image needs a real width, not just left/right
+    width: '100%', // Vega's Image needs a real width, not just left/right
     bottom: 0,
     height: 520,
   },
   panel: {
-    position: "absolute",
+    position: 'absolute',
     left: 96,
     right: 96,
     bottom: 64,
   },
-  titleRow: { flexDirection: "row", alignItems: "center", gap: 16 },
-  title: { color: colors.text, fontSize: 44, fontWeight: "700", flexShrink: 1 },
-  subtitle: { color: colors.textMuted, fontSize: 26, marginTop: 6 },
+  titleRow: {flexDirection: 'row', alignItems: 'center', gap: 16},
+  title: {color: colors.text, fontSize: 44, fontWeight: '700', flexShrink: 1},
+  subtitle: {color: colors.textMuted, fontSize: 26, marginTop: 6},
   liveTag: {
     backgroundColor: colors.red,
     borderRadius: 6,
@@ -349,51 +349,51 @@ const styles = scaledStyles({
   liveTagText: {
     color: colors.text,
     fontSize: 22,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 2,
   },
   timeline: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 24,
     marginTop: 28,
   },
-  time: { color: colors.text, fontSize: 24, width: 110, textAlign: "center" },
+  time: {color: colors.text, fontSize: 24, width: 110, textAlign: 'center'},
   track: {
     flex: 1,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    flexDirection: "row",
-    overflow: "hidden",
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    flexDirection: 'row',
+    overflow: 'hidden',
   },
-  fill: { backgroundColor: colors.blue },
+  fill: {backgroundColor: colors.blue},
   buttons: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: 28,
   },
-  transport: { flexDirection: "row", alignItems: "center", gap: 24 },
+  transport: {flexDirection: 'row', alignItems: 'center', gap: 24},
   button: {
     width: 88,
     height: 88,
     borderRadius: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.12)",
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.3)",
+    borderColor: 'rgba(255,255,255,0.3)',
   },
-  buttonBig: { width: 112, height: 112, borderRadius: 56 },
-  buttonWide: { width: 200 },
+  buttonBig: {width: 112, height: 112, borderRadius: 56},
+  buttonWide: {width: 200},
   buttonOn: {
     backgroundColor: colors.focusRing,
     borderColor: colors.focusRing,
-    transform: [{ scale: 1.08 }],
+    transform: [{scale: 1.08}],
   },
-  glyph: { color: colors.text, fontSize: 28, fontWeight: "700" },
-  glyphOn: { color: colors.background },
+  glyph: {color: colors.text, fontSize: 28, fontWeight: '700'},
+  glyphOn: {color: colors.background},
   playIcon: {
     width: 0,
     height: 0,
@@ -401,27 +401,27 @@ const styles = scaledStyles({
     borderTopWidth: 20,
     borderBottomWidth: 20,
     borderLeftWidth: 32,
-    borderTopColor: "transparent",
-    borderBottomColor: "transparent",
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
     borderLeftColor: colors.text,
   },
-  playOn: { borderLeftColor: colors.background },
-  pauseIcon: { flexDirection: "row", gap: 10 },
+  playOn: {borderLeftColor: colors.background},
+  pauseIcon: {flexDirection: 'row', gap: 10},
   pauseBar: {
     width: 10,
     height: 38,
     borderRadius: 2,
     backgroundColor: colors.text,
   },
-  barOn: { backgroundColor: colors.background },
-  ccRow: { flexDirection: "row", alignItems: "center", gap: 14 },
+  barOn: {backgroundColor: colors.background},
+  ccRow: {flexDirection: 'row', alignItems: 'center', gap: 14},
   ccBox: {
     borderWidth: 3,
     borderColor: colors.text,
     borderRadius: 6,
     paddingHorizontal: 6,
   },
-  ccBoxOn: { borderColor: colors.background },
-  ccText: { color: colors.text, fontSize: 24, fontWeight: "700" },
-  ccLabel: { color: colors.text, fontSize: 26, fontWeight: "600" },
+  ccBoxOn: {borderColor: colors.background},
+  ccText: {color: colors.text, fontSize: 24, fontWeight: '700'},
+  ccLabel: {color: colors.text, fontSize: 26, fontWeight: '600'},
 });
