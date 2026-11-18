@@ -42,7 +42,14 @@ export const PlayerScreen = ({message, live, onFinished}: Props) => {
         saveProgress(message, video.currentTime, video.duration);
       }
     };
+    // Hide the spinner as soon as video is actually moving. Vega doesn't
+    // always send 'playing' through Shaka, so time updates count too.
     const onPlaying = () => setState('playing');
+    const onTimeUpdate = () => {
+      if (video.currentTime > 0) {
+        setState((s) => (s === 'loading' ? 'playing' : s));
+      }
+    };
     const onError = () => setState('error');
     const onEnded = () => {
       if (message) {
@@ -57,6 +64,7 @@ export const PlayerScreen = ({message, live, onFinished}: Props) => {
         return;
       }
       video.addEventListener('playing', onPlaying);
+      video.addEventListener('timeupdate', onTimeUpdate);
       video.addEventListener('error', onError);
       video.addEventListener('ended', onEnded);
       video.autoplay = false;
@@ -73,7 +81,8 @@ export const PlayerScreen = ({message, live, onFinished}: Props) => {
       if (cancelled) {
         return;
       }
-      video.play();
+      await video.play();
+      setState((s) => (s === 'loading' ? 'playing' : s));
       if (message && !live) {
         saveTimer = setInterval(save, SAVE_EVERY_MS);
       }
@@ -86,6 +95,7 @@ export const PlayerScreen = ({message, live, onFinished}: Props) => {
       }
       save();
       video.removeEventListener('playing', onPlaying);
+      video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('error', onError);
       video.removeEventListener('ended', onEnded);
       // Amazon's certification checks that the decoder is released when playback ends.
