@@ -120,7 +120,7 @@ const styles = scaledStyles({
   titleShade: {
     position: 'absolute',
     left: 0,
-    right: 0,
+    width: '100%', // Vega's Image needs a real width, not just left/right
     bottom: 0,
     height: 150,
   },

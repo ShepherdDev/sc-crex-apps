@@ -305,7 +305,13 @@ const Button = ({
 
 const styles = scaledStyles({
   wrap: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0},
-  shade: {position: 'absolute', left: 0, right: 0, bottom: 0, height: 520},
+  shade: {
+    position: 'absolute',
+    left: 0,
+    width: '100%', // Vega's Image needs a real width, not just left/right
+    bottom: 0,
+    height: 520,
+  },
   panel: {
     position: 'absolute',
     left: 96,
