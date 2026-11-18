@@ -1,0 +1,205 @@
+import React, {useEffect, useRef, useState} from 'react';
+import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
+import {
+  KeplerVideoView,
+  VideoPlayer,
+} from '@amazon-devices/react-native-w3cmedia';
+import {colors} from '@shared/config';
+import {getResumePosition, saveProgress} from '@shared/storage/progress';
+import {getCaptionsOn, setCaptionsOn} from '@shared/storage/prefs';
+import {PlayerControls} from '@shared/components/PlayerControls';
+import type {PlayerScreenProps} from '@shared/navigation';
+import {scaledStyles} from '@shared/scale';
+import {createHlsPlayer, HlsPlayer} from './player/shaka';
+
+/** How often to save the position of a recorded message while it plays. */
+const SAVE_EVERY_MS = 15_000;
+
+/**
+ * Full-screen playback with Amazon's built-in controls.
+ * Live: always starts at the live edge, never saves a position.
+ * Recorded: resumes where this TV left off and feeds Continue Watching.
+ */
+export const PlayerScreen = ({
+  message,
+  live,
+  onFinished,
+}: PlayerScreenProps) => {
+  const url = live?.videoUrl ?? message?.videoUrl ?? '';
+  const [player, setPlayer] = useState<VideoPlayer | null>(null);
+  const [state, setState] = useState<'loading' | 'playing' | 'error'>(
+    'loading',
+  );
+  const hls = useRef<HlsPlayer | null>(null);
+  const [hasCaptions, setHasCaptions] = useState(false);
+  const [captionsOn, setCaptions] = useState(false);
+
+  const toggleCaptions = () => {
+    const on = !captionsOn;
+    setCaptions(on);
+    setCaptionsOn(on);
+    hls.current?.setCaptions(on).catch(() => {});
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    let saveTimer: ReturnType<typeof setInterval> | undefined;
+    const video = new VideoPlayer();
+
+    const save = () => {
+      if (message && video.duration > 0) {
+        saveProgress(message, video.currentTime, video.duration);
+      }
+    };
+    // Hide the spinner as soon as video is actually moving. Vega doesn't
+    // always send 'playing' through Shaka, so time updates count too.
+    const onPlaying = () => setState('playing');
+    const onTimeUpdate = () => {
+      if (video.currentTime > 0) {
+        setState((s) => (s === 'loading' ? 'playing' : s));
+      }
+    };
+    const onError = () => setState('error');
+    const onEnded = () => {
+      if (message) {
+        saveProgress(message, 0, 0); // finished: drop it from Continue Watching
+      }
+      onFinished();
+    };
+
+    (async () => {
+      await video.initialize();
+      if (cancelled) {
+        return;
+      }
+      video.addEventListener('playing', onPlaying);
+      video.addEventListener('timeupdate', onTimeUpdate);
+      video.addEventListener('error', onError);
+      video.addEventListener('ended', onEnded);
+      video.autoplay = false;
+      // Mount the video view now so its surface is ready when playback starts.
+      setPlayer(video);
+
+      hls.current = createHlsPlayer(video);
+      const resumeAt =
+        message && !live ? await getResumePosition(message.id) : undefined;
+      if (cancelled) {
+        return;
+      }
+      await hls.current.load(url, resumeAt);
+      if (cancelled) {
+        return;
+      }
+      // Captions: offer the button if the stream has them, and apply the
+      // viewer's last choice.
+      if (hls.current.hasCaptions()) {
+        setHasCaptions(true);
+        if (await getCaptionsOn()) {
+          setCaptions(true);
+          await hls.current.setCaptions(true).catch(() => {});
+        }
+      }
+      await video.play();
+      setState((s) => (s === 'loading' ? 'playing' : s));
+      if (message && !live) {
+        saveTimer = setInterval(save, SAVE_EVERY_MS);
+      }
+    })().catch(() => !cancelled && setState('error'));
+
+    return () => {
+      cancelled = true;
+      if (saveTimer) {
+        clearInterval(saveTimer);
+      }
+      save();
+      video.removeEventListener('playing', onPlaying);
+      video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('error', onError);
+      video.removeEventListener('ended', onEnded);
+      // Amazon's certification checks that the decoder is released when playback ends.
+      (async () => {
+        try {
+          await hls.current?.unload();
+        } catch {
+          // Already unloaded; nothing to release.
+        }
+        try {
+          video.pause();
+          await video.deinitialize();
+        } catch {
+          // Player never finished initializing; nothing to release.
+        }
+      })();
+    };
+    // Only re-run if a different video is opened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url]);
+
+  return (
+    <View style={styles.page}>
+      {player ? (
+        <KeplerVideoView
+          videoPlayer={player}
+          showControls={false}
+          showCaptions
+          scalingmode="fit"
+          style={styles.video}
+        />
+      ) : null}
+
+      {state === 'loading' ? (
+        <View style={styles.overlay}>
+          <ActivityIndicator size="large" color={colors.blue} />
+        </View>
+      ) : null}
+
+      {state === 'error' ? (
+        <View style={styles.overlay}>
+          <Text style={styles.errorTitle}>
+            This video can't be played right now.
+          </Text>
+          <Text style={styles.errorText}>
+            {live
+              ? 'If a service is about to start, try again in a minute.'
+              : 'Press Back to return.'}
+          </Text>
+        </View>
+      ) : null}
+
+      {player && state === 'playing' ? (
+        <PlayerControls
+          video={player}
+          title={live ? live.title : message?.title ?? ''}
+          subtitle={
+            live
+              ? 'Streaming live from Shepherd Church'
+              : [message?.seriesTitle, message?.speaker]
+                  .filter(Boolean)
+                  .join(' · ')
+          }
+          live={!!live}
+          hasCaptions={hasCaptions}
+          captionsOn={captionsOn}
+          onToggleCaptions={toggleCaptions}
+        />
+      ) : null}
+    </View>
+  );
+};
+
+const styles = scaledStyles({
+  page: {flex: 1, backgroundColor: '#000'},
+  video: {flex: 1},
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorTitle: {
+    color: colors.text,
+    fontSize: 40,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  errorText: {color: colors.textMuted, fontSize: 28},
+});
