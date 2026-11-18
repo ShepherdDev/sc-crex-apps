@@ -1,5 +1,37 @@
-import AsyncStorage from '@amazon-devices/react-native-async-storage__async-storage';
 import type {Message} from '../api/types';
+
+interface KeyValueStore {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+}
+
+/**
+ * Vega's AsyncStorage is a system library. If the TV doesn't link it, loading
+ * it throws, so we load it lazily and fall back to memory (progress is then
+ * kept only until the app closes) instead of crashing the whole app.
+ */
+let store: KeyValueStore | undefined;
+const memory = new Map<string, string>();
+const memoryStore: KeyValueStore = {
+  getItem: async (key) => memory.get(key) ?? null,
+  setItem: async (key, value) => {
+    memory.set(key, value);
+  },
+};
+function getStore(): KeyValueStore {
+  if (!store) {
+    try {
+      store = require('@react-native-async-storage/async-storage').default;
+    } catch (e) {
+      console.warn(
+        'AsyncStorage unavailable; Continue Watching is memory only',
+        e,
+      );
+    }
+    store = store ?? memoryStore;
+  }
+  return store;
+}
 
 /** A partly watched message, saved on this TV only. */
 export interface Progress {
@@ -17,7 +49,7 @@ const END_MARGIN = 300;
 
 async function readAll(): Promise<Progress[]> {
   try {
-    const raw = await AsyncStorage.getItem(KEY);
+    const raw = await getStore().getItem(KEY);
     return raw ? (JSON.parse(raw) as Progress[]) : [];
   } catch {
     return [];
@@ -26,7 +58,7 @@ async function readAll(): Promise<Progress[]> {
 
 async function writeAll(items: Progress[]) {
   try {
-    await AsyncStorage.setItem(KEY, JSON.stringify(items.slice(0, MAX_ITEMS)));
+    await getStore().setItem(KEY, JSON.stringify(items.slice(0, MAX_ITEMS)));
   } catch {
     // Storage is a nice-to-have; never let it break playback.
   }
