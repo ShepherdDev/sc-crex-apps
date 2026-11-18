@@ -121,3 +121,10 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+// The app's code lives in ../../../TV-Shared, outside the folder the React
+// Native plugin watches, so Gradle would reuse a stale JS bundle after a
+// shared-code change. Track that folder too.
+tasks.matching { it.name.startsWith("createBundle") }.configureEach {
+    inputs.dir(file("../../../TV-Shared/src"))
+}
