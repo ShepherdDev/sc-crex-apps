@@ -18,7 +18,7 @@
   INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
   WHERE S.[ContentChannelId] = @channelId
     AND C.[StartDateTime] <= GETDATE()
-    AND ISNULL(H.[Value], '') <> ''
+    AND H.[Value] LIKE 'http%'
   ORDER BY S.[StartDateTime] DESC
   {%- endsql -%}
   {%- assign seriesId = results | First | Property:'Id' -%}
@@ -51,7 +51,7 @@
     LEFT JOIN [AttributeValue] SPI ON SPI.[EntityId] = @seriesId AND SPI.[AttributeId] = 8885
     WHERE A.[ContentChannelItemId] = @seriesId
       AND C.[StartDateTime] <= GETDATE()
-      AND ISNULL(H.[Value], '') <> ''
+      AND H.[Value] LIKE 'http%'
     ORDER BY C.[StartDateTime] DESC
     {%- endsql -%}
     {%- assign seriesKey = series.Id | ToIdHash -%}

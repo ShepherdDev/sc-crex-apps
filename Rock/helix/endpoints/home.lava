@@ -25,6 +25,8 @@
     {%- endif -%}
     {%- assign dates = s.iCalendarContent | DatesFromICal:3 -%}
     {%- for d in dates -%}
+      {%- assign minutesAway = 'Now' | DateDiff:d,'m' -%}
+      {%- if minutesAway <= 0 -%}{%- continue -%}{%- endif -%}
       {%- capture upcomingText -%}{{ upcomingText }}~{{ d | Date:'yyyy-MM-ddTHH:mm:ss' }}|{{ label | Replace:'~','-' | Replace:'|','-' }}{%- endcapture -%}
     {%- endfor -%}
   {%- endfor -%}
@@ -46,7 +48,7 @@ LEFT JOIN [AttributeValue] PI ON PI.[EntityId] = C.[Id] AND PI.[AttributeId] = 8
 LEFT JOIN [AttributeValue] SPI ON SPI.[EntityId] = S.[Id] AND SPI.[AttributeId] = 8885
 WHERE S.[ContentChannelId] = 28
   AND C.[StartDateTime] <= GETDATE()
-  AND ISNULL(H.[Value], '') <> ''
+  AND H.[Value] LIKE 'http%'
 ORDER BY C.[StartDateTime] DESC
 {%- endsql -%}
 {%- assign latest = results -%}
@@ -67,7 +69,7 @@ LEFT JOIN [AttributeValue] PI ON PI.[EntityId] = C.[Id] AND PI.[AttributeId] = 8
 LEFT JOIN [AttributeValue] SPI ON SPI.[EntityId] = S.[Id] AND SPI.[AttributeId] = 8885
 WHERE S.[Id] = @seriesId
   AND C.[StartDateTime] <= GETDATE()
-  AND ISNULL(H.[Value], '') <> ''
+  AND H.[Value] LIKE 'http%'
 ORDER BY C.[StartDateTime] DESC
 {%- endsql -%}
 {%- assign currentMessages = results -%}
@@ -81,7 +83,7 @@ SELECT TOP 12 * FROM (
           INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
           INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
           WHERE A.[ContentChannelItemId] = S.[Id] AND C.[StartDateTime] <= GETDATE()
-            AND ISNULL(H.[Value], '') <> '') AS [MessageCount]
+            AND H.[Value] LIKE 'http%') AS [MessageCount]
   FROM [ContentChannelItem] S
   LEFT JOIN [AttributeValue] P ON P.[EntityId] = S.[Id] AND P.[AttributeId] = 8885
   WHERE S.[ContentChannelId] = @channelId AND S.[StartDateTime] <= GETDATE()
@@ -98,7 +100,7 @@ SELECT TOP 12 * FROM (
           INNER JOIN [ContentChannelItem] C ON C.[Id] = A.[ChildContentChannelItemId]
           INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
           WHERE A.[ContentChannelItemId] = S.[Id] AND C.[StartDateTime] <= GETDATE()
-            AND ISNULL(H.[Value], '') <> '') AS [MessageCount]
+            AND H.[Value] LIKE 'http%') AS [MessageCount]
   FROM [ContentChannelItem] S
   LEFT JOIN [AttributeValue] P ON P.[EntityId] = S.[Id] AND P.[AttributeId] = 8885
   WHERE S.[ContentChannelId] = @channelId AND S.[StartDateTime] <= GETDATE()
