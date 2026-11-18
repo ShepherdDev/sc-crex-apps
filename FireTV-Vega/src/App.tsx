@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {TVFocusGuideView} from '@amazon-devices/react-native-kepler';
 import {AppState, BackHandler, StyleSheet, View} from 'react-native';
 import type {HomeResponse} from './api/types';
 import {SideMenu} from './components/SideMenu';
@@ -144,9 +143,9 @@ export const App = () => {
           focusRequest={focusRequest}
         />
       )}
-      <TVFocusGuideView
-        autoFocus
-        style={[styles.content, playing && styles.fullScreen]}>
+      {/* Plain view: a focus guide here remembered cards from screens that
+          were replaced when switching sections, and trapped focus in the menu. */}
+      <View style={[styles.content, playing && styles.fullScreen]}>
         {stack.map((entry, i) => {
           const active = i === stack.length - 1;
           return (
@@ -164,7 +163,7 @@ export const App = () => {
             </View>
           );
         })}
-      </TVFocusGuideView>
+      </View>
     </View>
   );
 };
