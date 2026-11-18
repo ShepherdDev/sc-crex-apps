@@ -260,7 +260,8 @@ const styles = scaledStyles({
     justifyContent: 'center',
     backgroundColor: colors.background,
   },
-  hero: {height: HERO_HEIGHT, marginBottom: 24},
+  // Room between the banner buttons and the first row title.
+  hero: {height: HERO_HEIGHT, marginBottom: 64},
   heroImage: {
     position: 'absolute',
     top: 0,
@@ -297,7 +298,7 @@ const styles = scaledStyles({
     right: 96,
     flexDirection: 'row',
   },
-  heroText: {position: 'absolute', top: 160, left: SIDE_MARGIN, width: 640},
+  heroText: {position: 'absolute', top: 140, left: SIDE_MARGIN, width: 640},
   eyebrow: {
     color: colors.blue,
     fontSize: 24,
