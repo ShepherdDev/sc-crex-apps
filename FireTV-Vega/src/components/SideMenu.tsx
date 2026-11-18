@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {TVFocusGuideView} from '@amazon-devices/react-native-kepler';
 import {Image, Pressable, Text, View} from 'react-native';
 import {colors, MENU_WIDTH} from '../config';
@@ -33,40 +33,46 @@ export const SideMenu = ({
   onSelect,
   onFocusChange,
   focusRequest,
-}: Props) => (
-  <View style={styles.rail}>
-    <Image
-      source={require('../assets/logo.png')}
-      aria-label="Shepherd Church"
-      style={styles.logo}
-      resizeMode="contain"
-    />
-    <TVFocusGuideView autoFocus style={styles.items}>
-      {ITEMS.map((item) => {
-        const isCurrent = item.section === current;
-        return (
+}: Props) => {
+  const refs = useRef<Partial<Record<Section, any>>>({});
+
+  // Back from a screen: put focus on the current section's menu item.
+  useEffect(() => {
+    if (focusRequest > 0) {
+      refs.current[current]?.requestTVFocus?.();
+    }
+    // Only when a new request comes in, not when the section changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusRequest]);
+
+  return (
+    <View style={styles.rail}>
+      <Image
+        source={require('../assets/logo.png')}
+        aria-label="Shepherd Church"
+        style={styles.logo}
+        resizeMode="contain"
+      />
+      <TVFocusGuideView autoFocus style={styles.items}>
+        {ITEMS.map((item) => (
           <MenuItem
-            // Remounting the current item with preferred focus is how we
-            // move focus into the menu when Back is pressed.
-            key={
-              isCurrent && focusRequest > 0
-                ? `${item.section}-${focusRequest}`
-                : item.section
-            }
+            key={item.section}
+            itemRef={(r) => {
+              refs.current[item.section] = r;
+            }}
             section={item.section}
             label={item.label}
             hint={item.hint}
-            current={isCurrent}
+            current={item.section === current}
             showLive={item.section === 'live' && isLive}
-            hasTVPreferredFocus={isCurrent && focusRequest > 0}
             onPress={() => onSelect(item.section)}
             onFocusChange={onFocusChange}
           />
-        );
-      })}
-    </TVFocusGuideView>
-  </View>
-);
+        ))}
+      </TVFocusGuideView>
+    </View>
+  );
+};
 
 const MenuItem = ({
   section,
@@ -74,7 +80,7 @@ const MenuItem = ({
   hint,
   current,
   showLive,
-  hasTVPreferredFocus,
+  itemRef,
   onPress,
   onFocusChange,
 }: {
@@ -83,7 +89,7 @@ const MenuItem = ({
   hint: string;
   current: boolean;
   showLive: boolean;
-  hasTVPreferredFocus: boolean;
+  itemRef: (r: any) => void;
   onPress: () => void;
   onFocusChange: (inMenu: boolean) => void;
 }) => {
@@ -99,7 +105,7 @@ const MenuItem = ({
       aria-label={showLive ? `${label}, live now` : label}
       aria-selected={current}
       accessibilityHint={hint}
-      hasTVPreferredFocus={hasTVPreferredFocus}
+      ref={itemRef}
       onPress={onPress}
       onFocus={() => {
         setFocused(true);

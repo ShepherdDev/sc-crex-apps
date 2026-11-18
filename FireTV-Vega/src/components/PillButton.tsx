@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Pressable, Text, View} from 'react-native';
 import {colors} from '../config';
 import {scaledStyles} from '../scale';
+import {useInitialFocus} from '../focus';
 
 interface Props {
   label: string;
@@ -24,13 +25,14 @@ export const PillButton = ({
   onFocus,
   hint,
 }: Props) => {
+  const preferFocus = useInitialFocus(hasTVPreferredFocus);
   const [focused, setFocused] = useState(false);
   return (
     <Pressable
       role="button"
       aria-label={label}
       accessibilityHint={hint ?? label}
-      hasTVPreferredFocus={hasTVPreferredFocus}
+      hasTVPreferredFocus={preferFocus}
       onPress={onPress}
       onFocus={() => {
         setFocused(true);

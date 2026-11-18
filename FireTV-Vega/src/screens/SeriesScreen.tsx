@@ -15,6 +15,7 @@ import {colors, SIDE_MARGIN} from '../config';
 import type {Navigate} from '../navigation';
 import {ErrorView} from './ErrorView';
 import {scaledStyles} from '../scale';
+import {useInitialFocus} from '../focus';
 
 /** Big series art on the left, the series' messages on the right. */
 export const SeriesScreen = ({
@@ -132,6 +133,7 @@ const MessageRow = ({
   onPress: () => void;
   hasTVPreferredFocus?: boolean;
 }) => {
+  const preferFocus = useInitialFocus(hasTVPreferredFocus);
   const [focused, setFocused] = useState(false);
   const thumb = imageUrl(message.image, 480);
   return (
@@ -139,7 +141,7 @@ const MessageRow = ({
       role="button"
       aria-label={message.title}
       accessibilityHint="Plays this message"
-      hasTVPreferredFocus={hasTVPreferredFocus}
+      hasTVPreferredFocus={preferFocus}
       onPress={onPress}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}

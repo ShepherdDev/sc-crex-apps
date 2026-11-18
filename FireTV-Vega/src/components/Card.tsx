@@ -3,6 +3,7 @@ import {Image, Pressable, Text, View} from 'react-native';
 import {imageUrl} from '../api/client';
 import {colors} from '../config';
 import {px, scaledStyles} from '../scale';
+import {useInitialFocus} from '../focus';
 
 export const CARD_WIDTH = 400;
 export const CARD_HEIGHT = 225;
@@ -36,6 +37,7 @@ export const Card = ({
   accessibilityHint,
   width = CARD_WIDTH,
 }: Props) => {
+  const preferFocus = useInitialFocus(hasTVPreferredFocus);
   const [focused, setFocused] = useState(false);
   const src = imageUrl(image, width * 1.5);
   const size =
@@ -47,7 +49,7 @@ export const Card = ({
       role="button"
       aria-label={accessibilityLabel}
       accessibilityHint={accessibilityHint}
-      hasTVPreferredFocus={hasTVPreferredFocus}
+      hasTVPreferredFocus={preferFocus}
       onPress={onPress}
       onFocus={() => {
         setFocused(true);
