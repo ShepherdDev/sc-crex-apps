@@ -87,11 +87,15 @@ export const HomeScreen = ({
         {/* Smooth fades from the text panel into the art, and into the rows below. */}
         <Image
           source={require('../assets/fade-right.png')}
+          aria-hidden
+          accessible={false}
           style={styles.fadeRight}
           resizeMode="stretch"
         />
         <Image
           source={require('../assets/fade-down.png')}
+          aria-hidden
+          accessible={false}
           style={styles.fadeBottom}
           resizeMode="stretch"
         />
