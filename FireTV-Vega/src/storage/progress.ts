@@ -18,7 +18,7 @@ const memoryStore: KeyValueStore = {
     memory.set(key, value);
   },
 };
-function getStore(): KeyValueStore {
+export function getStore(): KeyValueStore {
   if (!store) {
     try {
       store = require('@react-native-async-storage/async-storage').default;

@@ -71,3 +71,13 @@ describe('next service pill', () => {
     );
   });
 });
+
+describe('playback time', () => {
+  const {playbackTime} = require('../src/api/format');
+  it('formats minutes and hours', () => {
+    expect(playbackTime(201)).toBe('3:21');
+    expect(playbackTime(744)).toBe('12:24');
+    expect(playbackTime(3909)).toBe('1:05:09');
+    expect(playbackTime(NaN)).toBe('0:00');
+  });
+});

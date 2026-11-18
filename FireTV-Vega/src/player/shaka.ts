@@ -21,6 +21,10 @@ export interface HlsPlayer {
    */
   load(url: string, startPosition?: number): Promise<void>;
   unload(): Promise<void>;
+  /** True if the stream has subtitles (Vimeo adds English auto-captions). */
+  hasCaptions(): boolean;
+  /** Turns captions on or off. */
+  setCaptions(on: boolean): Promise<void>;
 }
 
 export function createHlsPlayer(video: VideoPlayer): HlsPlayer {
@@ -32,6 +36,12 @@ export function createHlsPlayer(video: VideoPlayer): HlsPlayer {
     abrMaxWidth: 1920,
     abrMaxHeight: 1080,
   });
+  // Prefer English; Vimeo labels its track "en-x-autogen".
+  const captionTrack = () => {
+    const tracks: any[] = shaka.getTextTracks?.() ?? [];
+    return tracks.find((t) => String(t.language).startsWith('en')) ?? tracks[0];
+  };
+
   return {
     async load(url: string, startPosition?: number) {
       await shaka.load(
@@ -48,6 +58,24 @@ export function createHlsPlayer(video: VideoPlayer): HlsPlayer {
         },
         true,
       );
+      // Amazon's wrapper turns captions on after loading; start with them off
+      // and let the viewer choose (the player screen applies their setting).
+      const track = captionTrack();
+      if (track) {
+        await shaka.setTextTrack(null, track);
+      }
+    },
+    hasCaptions() {
+      return captionTrack() !== undefined;
+    },
+    async setCaptions(on: boolean) {
+      const track = captionTrack();
+      if (!track) {
+        return;
+      }
+      await (on
+        ? shaka.setTextTrack(track, null)
+        : shaka.setTextTrack(null, track));
     },
     async unload() {
       try {

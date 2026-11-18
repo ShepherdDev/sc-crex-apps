@@ -8,6 +8,8 @@ import type {LiveStream, Message} from '../api/types';
 import {colors} from '../config';
 import {createHlsPlayer, HlsPlayer} from '../player/shaka';
 import {getResumePosition, saveProgress} from '../storage/progress';
+import {getCaptionsOn, setCaptionsOn} from '../storage/prefs';
+import {PlayerControls} from '../components/PlayerControls';
 import {scaledStyles} from '../scale';
 
 /** How often to save the position of a recorded message while it plays. */
@@ -31,6 +33,15 @@ export const PlayerScreen = ({message, live, onFinished}: Props) => {
     'loading',
   );
   const hls = useRef<HlsPlayer | null>(null);
+  const [hasCaptions, setHasCaptions] = useState(false);
+  const [captionsOn, setCaptions] = useState(false);
+
+  const toggleCaptions = () => {
+    const on = !captionsOn;
+    setCaptions(on);
+    setCaptionsOn(on);
+    hls.current?.setCaptions(on).catch(() => {});
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -81,6 +92,15 @@ export const PlayerScreen = ({message, live, onFinished}: Props) => {
       if (cancelled) {
         return;
       }
+      // Captions: offer the button if the stream has them, and apply the
+      // viewer's last choice.
+      if (hls.current.hasCaptions()) {
+        setHasCaptions(true);
+        if (await getCaptionsOn()) {
+          setCaptions(true);
+          await hls.current.setCaptions(true).catch(() => {});
+        }
+      }
       await video.play();
       setState((s) => (s === 'loading' ? 'playing' : s));
       if (message && !live) {
@@ -122,7 +142,8 @@ export const PlayerScreen = ({message, live, onFinished}: Props) => {
       {player ? (
         <KeplerVideoView
           videoPlayer={player}
-          showControls
+          showControls={false}
+          showCaptions
           scalingmode="fit"
           style={styles.video}
         />
@@ -147,10 +168,22 @@ export const PlayerScreen = ({message, live, onFinished}: Props) => {
         </View>
       ) : null}
 
-      {live && state === 'playing' ? (
-        <View style={styles.liveBadge}>
-          <Text style={styles.liveText}>LIVE</Text>
-        </View>
+      {player && state === 'playing' ? (
+        <PlayerControls
+          video={player}
+          title={live ? live.title : message?.title ?? ''}
+          subtitle={
+            live
+              ? 'Streaming live from Shepherd Church'
+              : [message?.seriesTitle, message?.speaker]
+                  .filter(Boolean)
+                  .join(' · ')
+          }
+          live={!!live}
+          hasCaptions={hasCaptions}
+          captionsOn={captionsOn}
+          onToggleCaptions={toggleCaptions}
+        />
       ) : null}
     </View>
   );
@@ -171,19 +204,4 @@ const styles = scaledStyles({
     marginBottom: 12,
   },
   errorText: {color: colors.textMuted, fontSize: 28},
-  liveBadge: {
-    position: 'absolute',
-    top: 50,
-    right: 60,
-    backgroundColor: colors.red,
-    borderRadius: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-  },
-  liveText: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '700',
-    letterSpacing: 2,
-  },
 });

@@ -112,3 +112,12 @@ export function nextServiceLabel(
   }
   return {lead: 'Next service', emphasis: upcomingLabel(startIso, nowIso)};
 }
+
+/** "3:21", "12:24", "1:05:09" from seconds. */
+export function playbackTime(seconds: number): string {
+  const total = Math.max(0, Math.floor(seconds || 0));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = String(total % 60).padStart(2, '0');
+  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`;
+}
