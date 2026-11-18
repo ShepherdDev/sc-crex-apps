@@ -1,0 +1,14 @@
+*.iml
+*.swp
+.idea
+.DS_Store
+.vscode
+.tmp
+
+dist
+build
+node_modules
+CMakeUserPresets.json
+npm-debug.log
+# Amazon's Shaka Player for Vega (downloaded separately, see README)
+src/shakaplayer/
