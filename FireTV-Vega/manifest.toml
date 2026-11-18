@@ -2,6 +2,7 @@ schema-version = 1
 
 [package]
 title = "Shepherd Church"
+icon = "@image/app_icon.png"
 version = "1.0.0"
 # Floor so local builds pass vpt validate; pass an increasing --build-number for every Appstore upload.
 build-number = 1
