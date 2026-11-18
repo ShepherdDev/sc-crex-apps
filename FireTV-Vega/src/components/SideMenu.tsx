@@ -181,7 +181,7 @@ const styles = scaledStyles({
     paddingTop: 56,
     paddingHorizontal: 20,
   },
-  logo: {width: 196, height: 37, marginLeft: 12, marginBottom: 64},
+  logo: {width: 256, height: 43, marginLeft: 12, marginBottom: 64},
   items: {gap: 12},
   item: {
     flexDirection: 'row',

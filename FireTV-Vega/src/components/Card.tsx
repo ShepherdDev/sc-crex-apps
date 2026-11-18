@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Image, Pressable, Text, View} from 'react-native';
 import {imageUrl} from '../api/client';
 import {colors} from '../config';
-import {scaledStyles} from '../scale';
+import {px, scaledStyles} from '../scale';
 
 export const CARD_WIDTH = 400;
 export const CARD_HEIGHT = 225;
@@ -20,6 +20,8 @@ interface Props {
   accessibilityLabel: string;
   /** What pressing does, read by screen readers. */
   accessibilityHint: string;
+  /** Card width in 1920-wide design units (grids size cards to fit). */
+  width?: number;
 }
 
 export const Card = ({
@@ -32,9 +34,14 @@ export const Card = ({
   hasTVPreferredFocus,
   accessibilityLabel,
   accessibilityHint,
+  width = CARD_WIDTH,
 }: Props) => {
   const [focused, setFocused] = useState(false);
-  const src = imageUrl(image, CARD_WIDTH * 1.5);
+  const src = imageUrl(image, width * 1.5);
+  const size =
+    width === CARD_WIDTH
+      ? null
+      : {width: px(width), height: px((width * CARD_HEIGHT) / CARD_WIDTH)};
   return (
     <Pressable
       role="button"
@@ -47,8 +54,8 @@ export const Card = ({
         onFocus?.();
       }}
       onBlur={() => setFocused(false)}
-      style={styles.wrap}>
-      <View style={[styles.art, focused && styles.artFocused]}>
+      style={[styles.wrap, size && {width: size.width}]}>
+      <View style={[styles.art, size, focused && styles.artFocused]}>
         {src ? (
           <Image
             accessible={false}

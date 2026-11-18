@@ -3,12 +3,16 @@ import {ActivityIndicator, FlatList, Text, View} from 'react-native';
 import {getSeriesList} from '../api/client';
 import type {SeriesListResponse} from '../api/types';
 import {Card} from '../components/Card';
-import {colors, SIDE_MARGIN} from '../config';
+import {colors, MENU_WIDTH, SIDE_MARGIN} from '../config';
 import type {Navigate} from '../navigation';
 import {ErrorView} from './ErrorView';
 import {scaledStyles} from '../scale';
 
 const COLUMNS = 4;
+const GAP = 28;
+/** Cards sized so four columns fit beside the menu. */
+const GRID_CARD_WIDTH =
+  (1920 - MENU_WIDTH - SIDE_MARGIN * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
 
 /** "See all": every series as a grid of posters. */
 export const SeriesListScreen = ({
@@ -65,6 +69,7 @@ export const SeriesListScreen = ({
             accessibilityLabel={`${item.title} series`}
             accessibilityHint="Opens this series"
             hasTVPreferredFocus={index === 0}
+            width={GRID_CARD_WIDTH}
             onPress={() => navigate({name: 'series', id: item.id})}
           />
         )}
@@ -89,5 +94,5 @@ const styles = scaledStyles({
     marginBottom: 24,
   },
   grid: {paddingHorizontal: SIDE_MARGIN, paddingBottom: 120, paddingTop: 12},
-  gridRow: {gap: 28, marginBottom: 40},
+  gridRow: {gap: GAP, marginBottom: 40},
 });
