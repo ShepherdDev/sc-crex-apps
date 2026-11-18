@@ -6,6 +6,8 @@
  * This file is the only place the app touches Shaka.
  */
 import type {VideoPlayer} from '@amazon-devices/react-native-w3cmedia';
+// Must come before ShakaPlayer: sets up the globals Shaka reads on load.
+import './environment';
 import {ShakaPlayer} from '../shakaplayer/ShakaPlayer';
 
 // React Native's global object (where Amazon's wrapper expects `gmedia`).

@@ -11,7 +11,7 @@ import {LiveScreen} from './screens/LiveScreen';
 import {PlayerScreen} from './screens/PlayerScreen';
 import {SeriesListScreen} from './screens/SeriesListScreen';
 import {SeriesScreen} from './screens/SeriesScreen';
-import {scaledStyles} from './scale';
+import {scaledStyles, setScreenWidth} from './scale';
 
 interface Entry {
   key: number;
@@ -49,6 +49,8 @@ export const App = () => {
     {key: 0, route: rootRoute('home')},
   ]);
   const [focusRequest, setFocusRequest] = useState(0);
+  // Measure the real drawing area before showing anything (see scale.ts).
+  const [measured, setMeasured] = useState(false);
   const menuFocused = useRef(false);
 
   const top = stack[stack.length - 1].route;
@@ -100,6 +102,18 @@ export const App = () => {
     });
     return () => sub.remove();
   }, [stack.length, section, pop, selectSection]);
+
+  if (!measured) {
+    return (
+      <View
+        style={styles.root}
+        onLayout={(e) => {
+          setScreenWidth(e.nativeEvent.layout.width);
+          setMeasured(true);
+        }}
+      />
+    );
+  }
 
   return (
     <View style={styles.root}>

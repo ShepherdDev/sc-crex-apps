@@ -1,15 +1,29 @@
-import {Dimensions, StyleSheet} from 'react-native';
+import {Dimensions, PixelRatio, StyleSheet} from 'react-native';
 
 /**
  * Every size in this app is written for a 1920 x 1080 screen (the mockups).
- * Vega reports the screen in density-independent units (960 x 540 on a
- * 1080p TV), so we scale everything to the real width. Without this the whole
- * app draws twice as big.
+ * The real drawing area is measured by the app's root view on startup (see
+ * App.tsx) and everything is scaled to it. We measure instead of trusting
+ * Dimensions because Vega's reported size didn't match its layout units.
  */
-export const SCALE = Dimensions.get('window').width / 1920;
+let scale = Dimensions.get('window').width / 1920;
+let version = 0;
+
+export function setScreenWidth(width: number) {
+  console.log(
+    `[scale] root width ${width}, window ${JSON.stringify(
+      Dimensions.get('window'),
+    )}, pixelRatio ${PixelRatio.get()}`,
+  );
+  const next = width / 1920;
+  if (next !== scale) {
+    scale = next;
+    version++;
+  }
+}
 
 /** Converts a 1920-wide design size to screen units. */
-export const px = (n: number) => n * SCALE;
+export const px = (n: number) => n * scale;
 
 /** Style keys that are ratios or counts, not sizes. */
 const UNSCALED = new Set([
@@ -32,13 +46,28 @@ function scaleStyle(style: Record<string, any>) {
   return out;
 }
 
-/** StyleSheet.create with every size written in 1920-wide design units. */
+/**
+ * Like StyleSheet.create, with every size written in 1920-wide design units.
+ * Styles are scaled when first used (after the screen is measured) and
+ * rescaled if the measured size ever changes.
+ */
 export function scaledStyles<T extends StyleSheet.NamedStyles<T>>(
-  styles: T,
+  styles: T & StyleSheet.NamedStyles<any>,
 ): T {
-  const out: Record<string, any> = {};
-  for (const [name, style] of Object.entries(styles)) {
-    out[name] = scaleStyle(style as Record<string, any>);
+  const out = {} as T;
+  for (const name of Object.keys(styles) as (keyof T)[]) {
+    let cached: any;
+    let cachedVersion = -1;
+    Object.defineProperty(out, name, {
+      enumerable: true,
+      get() {
+        if (cachedVersion !== version) {
+          cached = scaleStyle(styles[name] as Record<string, any>);
+          cachedVersion = version;
+        }
+        return cached;
+      },
+    });
   }
-  return StyleSheet.create(out as T);
+  return out;
 }
