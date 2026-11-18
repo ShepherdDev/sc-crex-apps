@@ -184,8 +184,11 @@ const styles = scaledStyles({
     backgroundColor: '#060708',
     borderRightWidth: 1,
     borderRightColor: 'rgba(255,255,255,0.08)',
-    paddingTop: 56,
-    paddingHorizontal: 20,
+    // Many TVs crop the picture's edges (overscan), so the menu's contents
+    // start inside the ~5% title-safe zone. The background still runs to the edge.
+    paddingTop: 64,
+    paddingLeft: 84,
+    paddingRight: 16,
   },
   logo: {width: 256, height: 43, marginLeft: 12, marginBottom: 64},
   items: {gap: 12},

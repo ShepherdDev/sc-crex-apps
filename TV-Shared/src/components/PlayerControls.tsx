@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Image, Text, View} from 'react-native';
+import {Image, Pressable, Text, View} from 'react-native';
 import {playbackTime} from '../api/format';
 import {colors} from '../config';
 import {useTVEventHandler} from '../platform/tv';
@@ -164,6 +164,8 @@ export const PlayerControls = ({
   };
 
   useTVEventHandler((evt) => {
+    // Shows up in `adb logcat` / the Vega log stream when testing remotes.
+    console.log(`[remote] ${evt?.eventType} ${evt?.eventKeyAction ?? ''}`);
     // Act once per press: ignore key-up when the remote sends down and up.
     if (evt?.eventKeyAction === 1) {
       return;
@@ -199,8 +201,24 @@ export const PlayerControls = ({
     }
   });
 
+  // On Fire OS nothing in the player could take focus, so Android gave the
+  // remote's buttons to the video view, which swallowed them. This invisible
+  // full-screen button holds focus so every press reaches the handler above.
+  // (Its own press does nothing; the handler acts on Select.)
+  const focusHolder = handlesMediaKeys ? (
+    <Pressable
+      style={styles.focusHolder}
+      hasTVPreferredFocus
+      role="button"
+      aria-label="Playback controls"
+      accessibilityHint="Use left and right to choose a control, select to press it"
+      onPress={() => {}}
+    />
+  ) : null;
+
   if (!visible) {
-    return null;
+    // Same shape as below so the focus holder isn't remounted.
+    return <>{focusHolder}</>;
   }
 
   const progress =
@@ -208,90 +226,102 @@ export const PlayerControls = ({
   const on = (id: ButtonId) => selected === id;
 
   return (
-    <View style={styles.wrap} pointerEvents="none">
-      <Image
-        source={require('../assets/fade-down.png')}
-        aria-hidden
-        accessible={false}
-        style={styles.shade}
-        resizeMode="stretch"
-      />
-      <View style={styles.panel}>
-        <View style={styles.titleRow}>
-          {live ? (
-            <View style={styles.liveTag}>
-              <Text style={styles.liveTagText}>LIVE</Text>
-            </View>
+    <>
+      {focusHolder}
+      <View style={styles.wrap} pointerEvents="none">
+        <Image
+          source={require('../assets/fade-down.png')}
+          aria-hidden
+          accessible={false}
+          style={styles.shade}
+          resizeMode="stretch"
+        />
+        <View style={styles.panel}>
+          <View style={styles.titleRow}>
+            {live ? (
+              <View style={styles.liveTag}>
+                <Text style={styles.liveTagText}>LIVE</Text>
+              </View>
+            ) : null}
+            <Text style={styles.title} numberOfLines={1}>
+              {title}
+            </Text>
+          </View>
+          {subtitle ? (
+            <Text style={styles.subtitle} numberOfLines={1}>
+              {subtitle}
+            </Text>
           ) : null}
-          <Text style={styles.title} numberOfLines={1}>
-            {title}
-          </Text>
-        </View>
-        {subtitle ? (
-          <Text style={styles.subtitle} numberOfLines={1}>
-            {subtitle}
-          </Text>
-        ) : null}
 
-        {live ? null : (
-          <View style={styles.timeline}>
-            <Text style={styles.time}>{playbackTime(time.current)}</Text>
-            <View style={styles.track}>
-              <View style={[styles.fill, {flex: progress}]} />
-              <View style={{flex: 1 - progress}} />
+          {live ? null : (
+            <View style={styles.timeline}>
+              <Text style={styles.time}>{playbackTime(time.current)}</Text>
+              <View style={styles.track}>
+                <View style={[styles.fill, {flex: progress}]} />
+                <View style={{flex: 1 - progress}} />
+              </View>
+              <Text style={styles.time}>{playbackTime(time.duration)}</Text>
             </View>
-            <Text style={styles.time}>{playbackTime(time.duration)}</Text>
-          </View>
-        )}
+          )}
 
-        <View style={styles.buttons}>
-          <View style={styles.transport}>
-            {live ? null : (
-              <Button selected={on('back')} label="Back 10 seconds">
-                <Text style={[styles.glyph, on('back') && styles.glyphOn]}>
-                  −10
-                </Text>
-              </Button>
-            )}
-            <Button big selected={on('play')} label={paused ? 'Play' : 'Pause'}>
-              {paused ? (
-                <View style={[styles.playIcon, on('play') && styles.playOn]} />
-              ) : (
-                <View style={styles.pauseIcon}>
-                  <View style={[styles.pauseBar, on('play') && styles.barOn]} />
-                  <View style={[styles.pauseBar, on('play') && styles.barOn]} />
-                </View>
+          <View style={styles.buttons}>
+            <View style={styles.transport}>
+              {live ? null : (
+                <Button selected={on('back')} label="Back 10 seconds">
+                  <Text style={[styles.glyph, on('back') && styles.glyphOn]}>
+                    −10
+                  </Text>
+                </Button>
               )}
-            </Button>
-            {live ? null : (
-              <Button selected={on('forward')} label="Forward 10 seconds">
-                <Text style={[styles.glyph, on('forward') && styles.glyphOn]}>
-                  +10
-                </Text>
+              <Button
+                big
+                selected={on('play')}
+                label={paused ? 'Play' : 'Pause'}>
+                {paused ? (
+                  <View
+                    style={[styles.playIcon, on('play') && styles.playOn]}
+                  />
+                ) : (
+                  <View style={styles.pauseIcon}>
+                    <View
+                      style={[styles.pauseBar, on('play') && styles.barOn]}
+                    />
+                    <View
+                      style={[styles.pauseBar, on('play') && styles.barOn]}
+                    />
+                  </View>
+                )}
               </Button>
-            )}
-          </View>
+              {live ? null : (
+                <Button selected={on('forward')} label="Forward 10 seconds">
+                  <Text style={[styles.glyph, on('forward') && styles.glyphOn]}>
+                    +10
+                  </Text>
+                </Button>
+              )}
+            </View>
 
-          {hasCaptions ? (
-            <Button
-              wide
-              selected={on('cc')}
-              label={captionsOn ? 'Captions on' : 'Captions off'}>
-              <View style={styles.ccRow}>
-                <View style={[styles.ccBox, on('cc') && styles.ccBoxOn]}>
-                  <Text style={[styles.ccText, on('cc') && styles.glyphOn]}>
-                    CC
+            {hasCaptions ? (
+              <Button
+                wide
+                selected={on('cc')}
+                label={captionsOn ? 'Captions on' : 'Captions off'}>
+                <View style={styles.ccRow}>
+                  <View style={[styles.ccBox, on('cc') && styles.ccBoxOn]}>
+                    <Text style={[styles.ccText, on('cc') && styles.glyphOn]}>
+                      CC
+                    </Text>
+                  </View>
+                  <Text style={[styles.ccLabel, on('cc') && styles.glyphOn]}>
+                    {captionsOn ? 'On' : 'Off'}
                   </Text>
                 </View>
-                <Text style={[styles.ccLabel, on('cc') && styles.glyphOn]}>
-                  {captionsOn ? 'On' : 'Off'}
-                </Text>
-              </View>
-            </Button>
-          ) : null}
+              </Button>
+            ) : null}
+          </View>
         </View>
       </View>
-    </View>
+    </>
   );
 };
 
@@ -323,6 +353,7 @@ const Button = ({
 );
 
 const styles = scaledStyles({
+  focusHolder: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0},
   wrap: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0},
   shade: {
     position: 'absolute',
