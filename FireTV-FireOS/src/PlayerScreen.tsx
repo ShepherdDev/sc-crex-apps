@@ -1,5 +1,11 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
+import {
+  ActivityIndicator,
+  PixelRatio,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Video, {
   SelectedTrackType,
   type OnLoadData,
@@ -12,7 +18,20 @@ import {getResumePosition, saveProgress} from '@shared/storage/progress';
 import {getCaptionsOn, setCaptionsOn} from '@shared/storage/prefs';
 import {PlayerControls, type Playback} from '@shared/components/PlayerControls';
 import type {PlayerScreenProps} from '@shared/navigation';
-import {scaledStyles} from '@shared/scale';
+import {px, scaledStyles} from '@shared/scale';
+
+/**
+ * Keep captions inside the TV-safe area: many TVs crop the picture's edges,
+ * which cut off the bottom line. react-native-video takes physical pixels.
+ * Text size is left to the viewer's Fire TV caption settings.
+ */
+const toPixels = (designPx: number) =>
+  PixelRatio.getPixelSizeForLayoutSize(px(designPx));
+const CAPTION_INSETS = {
+  paddingBottom: toPixels(72),
+  paddingLeft: toPixels(96),
+  paddingRight: toPixels(96),
+};
 
 /** How often to save the position of a recorded message while it plays. */
 const SAVE_EVERY_MS = 15_000;
@@ -143,6 +162,7 @@ export const PlayerScreen = ({
         onProgress={onProgress}
         progressUpdateInterval={500}
         onTextTracks={onTextTracks}
+        subtitleStyle={CAPTION_INSETS}
         selectedTextTrack={
           captionsOn && captionTrack !== null
             ? {type: SelectedTrackType.INDEX, value: captionTrack}
