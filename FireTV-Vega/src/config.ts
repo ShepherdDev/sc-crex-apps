@@ -14,5 +14,8 @@ export const colors = {
   focusRing: '#FFFFFF',
 };
 
-/** Screen margin used everywhere so rows and banner line up. */
-export const SIDE_MARGIN = 96;
+/** Width of the always-visible menu on the left. Screens draw to its right. */
+export const MENU_WIDTH = 260;
+
+/** Margin inside the content area so rows and banner line up. */
+export const SIDE_MARGIN = 72;

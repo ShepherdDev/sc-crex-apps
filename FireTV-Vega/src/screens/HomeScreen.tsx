@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -7,10 +7,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import {getHome, imageUrl} from '../api/client';
-import {messageMeta, startTimeLabel, upcomingLabel} from '../api/format';
+import {imageUrl} from '../api/client';
+import {messageMeta, startTimeLabel} from '../api/format';
 import type {HomeResponse, Message, Series} from '../api/types';
 import {Card} from '../components/Card';
+import {NextServicePill} from '../components/NextServicePill';
 import {PillButton} from '../components/PillButton';
 import {Row} from '../components/Row';
 import {colors, SIDE_MARGIN} from '../config';
@@ -18,43 +19,37 @@ import {getContinueWatching, Progress} from '../storage/progress';
 import type {Navigate} from '../navigation';
 import {ErrorView} from './ErrorView';
 
-/** How often to re-check live status while the home screen is open. */
-const REFRESH_MS = 60_000;
 const HERO_HEIGHT = 652;
 const HERO_IMAGE_WIDTH = 1160;
 
+/** Fade steps that blend the solid text panel into the artwork (no gradients on TV). */
+const FADE_STEPS = [0.85, 0.65, 0.45, 0.25, 0.1];
+const FADE_STEP = 32;
+const SHADE_WIDTH = 800;
+
 export const HomeScreen = ({
+  home,
+  error,
+  reload,
   navigate,
   active,
 }: {
+  home: HomeResponse | null;
+  error: string | null;
+  reload: () => void;
   navigate: Navigate;
   active: boolean;
 }) => {
-  const [home, setHome] = useState<HomeResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [continueItems, setContinueItems] = useState<Progress[]>([]);
   const scroll = useRef<ScrollView>(null);
   const rowY = useRef<Record<string, number>>({});
 
-  const load = useCallback(async () => {
-    try {
-      setHome(await getHome());
-      setError(null);
-    } catch (e: any) {
-      setError(e?.message ?? 'Something went wrong.');
-    }
-  }, []);
-
-  // Load now, then keep live status fresh while this screen is showing.
+  // Refresh Continue Watching whenever we come back to this screen.
   useEffect(() => {
-    if (!active) {
-      return;
+    if (active) {
+      getContinueWatching().then(setContinueItems);
     }
-    load();
-    getContinueWatching().then(setContinueItems);
-    const timer = setInterval(load, REFRESH_MS);
-    return () => clearInterval(timer);
-  }, [active, load]);
+  }, [active]);
 
   const scrollToRow = (id: string) => {
     const y = rowY.current[id];
@@ -66,7 +61,7 @@ export const HomeScreen = ({
 
   if (!home) {
     return error ? (
-      <ErrorView message={error} onRetry={load} />
+      <ErrorView message={error} onRetry={reload} />
     ) : (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={colors.blue} />
@@ -98,23 +93,31 @@ export const HomeScreen = ({
           />
         ) : null}
         <View style={styles.heroShade} />
-
-        <View style={styles.topBar}>
-          <Image
-            source={require('../assets/logo.png')}
-            aria-label="Shepherd Church"
-            style={styles.logo}
-            resizeMode="contain"
+        {FADE_STEPS.map((opacity, i) => (
+          <View
+            key={i}
+            style={[
+              styles.fadeStep,
+              {left: SHADE_WIDTH + i * FADE_STEP, opacity},
+            ]}
           />
-          {next ? (
-            <Text style={styles.nextLive}>
-              Next live:{' '}
-              <Text style={styles.nextLiveTime}>
-                {upcomingLabel(next.start, generatedAt)}
-              </Text>
-            </Text>
-          ) : null}
-        </View>
+        ))}
+        {FADE_STEPS.map((opacity, i) => (
+          <View
+            key={`b${i}`}
+            style={[
+              styles.fadeBottom,
+              {bottom: (i * 92) / FADE_STEPS.length, opacity},
+            ]}
+          />
+        ))}
+
+        {/* Countdown to the next stream; hidden while we're live. */}
+        {next && !live ? (
+          <View style={styles.topBar}>
+            <NextServicePill start={next.start} now={generatedAt} />
+          </View>
+        ) : null}
 
         <View style={styles.heroText}>
           {live ? (
@@ -282,23 +285,31 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    width: 820,
+    width: SHADE_WIDTH,
     height: HERO_HEIGHT,
+    backgroundColor: colors.background,
+  },
+  fadeStep: {
+    position: 'absolute',
+    top: 0,
+    width: FADE_STEP,
+    height: HERO_HEIGHT,
+    backgroundColor: colors.background,
+  },
+  fadeBottom: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 92 / FADE_STEPS.length,
     backgroundColor: colors.background,
   },
   topBar: {
     position: 'absolute',
-    top: 56,
-    left: SIDE_MARGIN,
-    right: SIDE_MARGIN,
+    top: 60,
+    right: 96,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
-  logo: {height: 52, width: 276},
-  nextLive: {color: colors.textMuted, fontSize: 26},
-  nextLiveTime: {color: colors.text, fontWeight: '700'},
-  heroText: {position: 'absolute', top: 178, left: SIDE_MARGIN, width: 700},
+  heroText: {position: 'absolute', top: 160, left: SIDE_MARGIN, width: 640},
   eyebrow: {
     color: colors.blue,
     fontSize: 24,

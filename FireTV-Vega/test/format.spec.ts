@@ -1,4 +1,9 @@
-import {messageMeta, shortDate, startTimeLabel, upcomingLabel} from '../src/api/format';
+import {
+  messageMeta,
+  shortDate,
+  startTimeLabel,
+  upcomingLabel,
+} from '../src/api/format';
 
 describe('date labels (church local time, no time zone shifting)', () => {
   const now = '2026-11-17T16:00:00'; // Tuesday 4 PM
@@ -26,5 +31,43 @@ describe('date labels (church local time, no time zone shifting)', () => {
       'Nov 15 · Pastor Dudley Rutherford',
     );
     expect(messageMeta('2026-11-15T00:00:00', '')).toBe('Nov 15');
+  });
+});
+
+describe('next service pill', () => {
+  const now = '2026-11-17T16:00:00';
+  const {nextServiceLabel} = require('../src/api/format');
+  it('counts minutes in the last hour', () => {
+    expect(nextServiceLabel('2026-11-17T16:25:00', now)).toEqual({
+      lead: 'Next service in',
+      emphasis: '25 minutes',
+    });
+    expect(nextServiceLabel('2026-11-17T16:01:00', now).emphasis).toBe(
+      '1 minute',
+    );
+  });
+  it('counts whole hours within a day', () => {
+    expect(nextServiceLabel('2026-11-17T19:45:00', now).emphasis).toBe(
+      '3 hours',
+    );
+    expect(nextServiceLabel('2026-11-17T17:10:00', now).emphasis).toBe(
+      '1 hour',
+    );
+  });
+  it('crosses midnight and month ends', () => {
+    expect(
+      nextServiceLabel('2026-12-01T08:00:00', '2026-11-30T20:00:00').emphasis,
+    ).toBe('12 hours');
+  });
+  it('names the day when more than a day away', () => {
+    expect(nextServiceLabel('2026-11-22T08:45:00', now)).toEqual({
+      lead: 'Next service',
+      emphasis: 'Sunday, 8:45 AM',
+    });
+  });
+  it('handles a start that just passed', () => {
+    expect(nextServiceLabel('2026-11-17T15:59:00', now).emphasis).toBe(
+      'starting now',
+    );
   });
 });

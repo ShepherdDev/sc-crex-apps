@@ -75,3 +75,40 @@ export function startTimeLabel(hhmmss: string): string {
 export function messageMeta(date: string, speaker?: string): string {
   return speaker ? `${shortDate(date)} · ${speaker}` : shortDate(date);
 }
+
+/** Minutes from `nowIso` to `startIso`, both church local time. */
+export function minutesUntil(startIso: string, nowIso: string): number {
+  const s = parts(startIso);
+  const n = parts(nowIso);
+  const start = Date.UTC(s.y, s.m - 1, s.day, s.hh, s.mm);
+  const now = Date.UTC(n.y, n.m - 1, n.day, n.hh, n.mm);
+  return Math.round((start - now) / 60000);
+}
+
+/**
+ * The home screen's "Next service in 3 hours" pill, counting down to when the
+ * stream goes live (the schedule time). Returns the plain lead-in and the bold part.
+ */
+export function nextServiceLabel(
+  startIso: string,
+  nowIso: string,
+): {lead: string; emphasis: string} {
+  const mins = minutesUntil(startIso, nowIso);
+  if (mins <= 0) {
+    return {lead: 'Next service', emphasis: 'starting now'};
+  }
+  if (mins < 60) {
+    return {
+      lead: 'Next service in',
+      emphasis: `${mins} minute${mins === 1 ? '' : 's'}`,
+    };
+  }
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) {
+    return {
+      lead: 'Next service in',
+      emphasis: `${hours} hour${hours === 1 ? '' : 's'}`,
+    };
+  }
+  return {lead: 'Next service', emphasis: upcomingLabel(startIso, nowIso)};
+}

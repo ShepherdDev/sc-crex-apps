@@ -1,8 +1,13 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {TVFocusGuideView} from '@amazon-devices/react-native-kepler';
 import {BackHandler, StyleSheet, View} from 'react-native';
-import {colors} from './config';
-import type {Navigate, Route} from './navigation';
+import type {HomeResponse} from './api/types';
+import {SideMenu} from './components/SideMenu';
+import {colors, MENU_WIDTH} from './config';
+import {useHome} from './hooks/useHome';
+import type {Navigate, Route, Section} from './navigation';
 import {HomeScreen} from './screens/HomeScreen';
+import {LiveScreen} from './screens/LiveScreen';
 import {PlayerScreen} from './screens/PlayerScreen';
 import {SeriesListScreen} from './screens/SeriesListScreen';
 import {SeriesScreen} from './screens/SeriesScreen';
@@ -13,15 +18,50 @@ interface Entry {
 }
 let nextKey = 1;
 
+/** The first screen of each menu section. */
+function rootRoute(section: Section): Route {
+  switch (section) {
+    case 'home':
+      return {name: 'home'};
+    case 'live':
+      return {name: 'live'};
+    case 'series':
+      return {name: 'seriesList', url: 'sermons'};
+    case 'groups':
+      return {name: 'seriesList', url: 'lifegroups'};
+  }
+}
+
 /**
- * A simple screen stack. Screens underneath stay mounted (hidden) so focus
- * and scroll position are where you left them when you press Back.
- * Back on the home screen exits the app.
+ * Side menu plus a screen stack for the current section. Screens underneath
+ * stay mounted (hidden) so focus and scroll are where you left them.
+ *
+ * Back button:
+ *  1. On a pushed screen (a series, the player): go back one screen.
+ *  2. On a section's first screen: move focus to the menu.
+ *  3. In the menu, on any section but Home: go to Home.
+ *  4. In the menu on Home: exit the app.
  */
 export const App = () => {
+  const [section, setSection] = useState<Section>('home');
   const [stack, setStack] = useState<Entry[]>([
-    {key: 0, route: {name: 'home'}},
+    {key: 0, route: rootRoute('home')},
   ]);
+  const [focusRequest, setFocusRequest] = useState(0);
+  const menuFocused = useRef(false);
+
+  const top = stack[stack.length - 1].route;
+  const playing = top.name === 'player';
+  const {home, error, reload} = useHome(playing);
+
+  // The menu is hidden during playback, so it can't report losing focus.
+  // Reset its state so leaving the player doesn't pull focus into the menu.
+  useEffect(() => {
+    if (playing) {
+      menuFocused.current = false;
+      setFocusRequest(0);
+    }
+  }, [playing]);
 
   const navigate: Navigate = useCallback((route) => {
     setStack((s) => [...s, {key: nextKey++, route}]);
@@ -31,40 +71,103 @@ export const App = () => {
     [],
   );
 
+  const selectSection = useCallback(
+    (next: Section) => {
+      // When we're live, Watch Live goes straight to the stream.
+      if (next === 'live' && home?.live) {
+        navigate({name: 'player', live: home.live});
+        return;
+      }
+      setSection(next);
+      setStack([{key: nextKey++, route: rootRoute(next)}]);
+    },
+    [home?.live, navigate],
+  );
+
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (stack.length > 1) {
         pop();
-        return true;
+      } else if (!menuFocused.current) {
+        setFocusRequest((n) => n + 1);
+      } else if (section !== 'home') {
+        selectSection('home');
+      } else {
+        return false; // let Vega close the app
       }
-      return false; // home: let Vega close the app
+      return true;
     });
     return () => sub.remove();
-  }, [stack.length, pop]);
+  }, [stack.length, section, pop, selectSection]);
 
   return (
     <View style={styles.root}>
-      {stack.map((entry, i) => {
-        const active = i === stack.length - 1;
-        return (
-          <View key={entry.key} style={active ? styles.screen : styles.hidden}>
-            {renderRoute(entry.route, navigate, pop, active)}
-          </View>
-        );
-      })}
+      {playing ? null : (
+        <SideMenu
+          current={section}
+          isLive={!!home?.live}
+          onSelect={selectSection}
+          onFocusChange={(inMenu) => (menuFocused.current = inMenu)}
+          focusRequest={focusRequest}
+        />
+      )}
+      <TVFocusGuideView
+        autoFocus
+        style={[styles.content, playing && styles.fullScreen]}>
+        {stack.map((entry, i) => {
+          const active = i === stack.length - 1;
+          return (
+            <View
+              key={entry.key}
+              style={active ? styles.screen : styles.hidden}>
+              {renderRoute(entry.route, {
+                navigate,
+                pop,
+                active,
+                home,
+                error,
+                reload,
+              })}
+            </View>
+          );
+        })}
+      </TVFocusGuideView>
     </View>
   );
 };
 
 function renderRoute(
   route: Route,
-  navigate: Navigate,
-  pop: () => void,
-  active: boolean,
+  ctx: {
+    navigate: Navigate;
+    pop: () => void;
+    active: boolean;
+    home: HomeResponse | null;
+    error: string | null;
+    reload: () => void;
+  },
 ) {
+  const {navigate, pop, active, home, error, reload} = ctx;
   switch (route.name) {
     case 'home':
-      return <HomeScreen navigate={navigate} active={active} />;
+      return (
+        <HomeScreen
+          home={home}
+          error={error}
+          reload={reload}
+          navigate={navigate}
+          active={active}
+        />
+      );
+    case 'live':
+      return (
+        <LiveScreen
+          home={home}
+          error={error}
+          reload={reload}
+          navigate={navigate}
+        />
+      );
     case 'series':
       return <SeriesScreen id={route.id} navigate={navigate} />;
     case 'seriesList':
@@ -82,6 +185,15 @@ function renderRoute(
 
 const styles = StyleSheet.create({
   root: {flex: 1, backgroundColor: colors.background},
+  content: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    right: 0,
+    left: MENU_WIDTH,
+    overflow: 'hidden',
+  },
+  fullScreen: {left: 0},
   screen: {...StyleSheet.absoluteFillObject},
   hidden: {display: 'none'},
 });
