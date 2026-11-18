@@ -1,51 +1,72 @@
 # Shepherd Church TV API (Helix Lava Application)
 
-Replaces the Blue Box Moon **Crex** plugin pages (`/api/crex/page/...`) with a
-core-Rock Lava Application. Responses use the same JSON shape Crex used, so the
-existing Roku app works by changing only its `ApplicationRootUrl`.
+The JSON API behind the new Roku, Apple TV and Fire TV apps. It replaces the
+Blue Box Moon **Crex** plugin pages (`/api/crex/page/...`) with core Rock, so a
+Rock upgrade can't break it the way a compiled plugin can.
 
 Base URL: `https://rock.shepherdchurch.net/api/v2/lava-app/1/tv`
 
-| Endpoint | Method | Lava Commands | Cache (seconds) | Returns |
-|---|---|---|---|---|
-| `home` | GET | RockEntity | 60 | Menu (Watch Live / Service Times, Current Series, Archives, Life Groups) |
-| `live` | GET | (none) | 60 | Video: Resi live stream |
-| `service-times` | GET | (none) | 300 | Image |
-| `series-list` | GET | Sql | 300 | PosterList of series (`?channel=sermons` or `lifegroups`) |
-| `series` | GET | Sql | 300 | PosterList of messages (`?id=<IdKey>` or `?id=current&channel=...`) |
-| `watch` | GET | Sql | 300 | Video: one message's HLS URL (`?id=<IdKey>`) |
+| Endpoint | Lava Commands | Cache | Returns |
+|---|---|---|---|
+| `home` | Rock Entity, Sql | 60 s | Live status, upcoming streams, banner message, home rows |
+| `series` | Sql | 300 s | One series and its messages (`?id=<IdKey>` or `?id=current&channel=sermons\|lifegroups`) |
+| `series-list` | Sql | 300 s | Every series with a published video (`?channel=sermons\|lifegroups`) |
 
 ## Setup in Rock (prod)
 
-1. **Admin Tools → CMS → Lava Applications → Add.**
-   - Name: `Shepherd Church TV`
-   - Slug: `tv`
-   - Description: `JSON API for the Roku, Apple TV and Fire TV apps. Replaces the Crex plugin.`
-   - Configuration: paste `configuration.json`.
-   - Save.
-2. **Security on the application** (lock icon): add **All Users** with
-   **Execute View = Allow**. Leave Edit/Administrate alone. Without this,
-   anonymous TVs get an access error.
-3. **Add each endpoint** (Endpoints tab → Add) using the table above:
-   - Name: e.g. `Home`; Slug: the endpoint name (`home`, `live`, ...)
-   - HTTP Method: GET
+1. **Admin Tools → CMS → Lava Applications → Add**
+   - Name `Shepherd Church TV`, Slug `tv`
+   - Configuration: paste `configuration.json`
+2. **Application security** (lock icon): **All Users → Execute View → Allow**.
+3. **Each endpoint** (Endpoints → Add):
+   - Name and Slug: `home`, `series`, `series-list`
+   - HTTP Method: **Get**
    - Security Mode: **Application View**
+   - Enable Cross-Site Forgery Protection: **off** (TVs can't send the token; these are read-only)
    - Enabled Lava Commands: per the table
-   - Caching Settings: public, max age per the table
-   - Code Template: paste the matching file from `endpoints/`.
-4. **Quick check** in a browser:
-   `https://rock.shepherdchurch.net/api/v2/lava-app/1/tv/home`
-   should show JSON starting with `{"Template": "Menu"`.
+   - Advanced Settings → caching: public, max age per the table
+   - Code Template: paste the file from `endpoints/`
+4. Check `https://rock.shepherdchurch.net/api/v2/lava-app/1/tv/home` in a browser.
 
-## Things to know
+## Configuration (edit any time, no app update)
 
-- **IDs are hard-coded** in the templates (channels 26/28, live schedule
-  category 458, attribute Ids 8885/8887/8888/8914). They are commented at the top
-  of each file. If a channel or attribute is ever recreated, update them there.
-- **Changing the live stream, home background or service-times image**: edit the
-  application's Configuration JSON. No app update needed.
-- **Strings use `| ToJSON`**, which outputs a complete quoted, escaped string.
-  Never wrap a `ToJSON` value in quotes, and never use `ToJSONSafeString`.
-- **Items are listed with a leading comma** (`sep`) so there's never a trailing
-  comma, which is what broke the old templates.
-- Series and video links use Rock **IdKeys**, not raw Ids.
+- `LiveStreamUrl`: the Resi HLS URL.
+- `LiveScheduleIds`: schedules (from the Streaming category, 458) that turn on
+  LIVE NOW and fill "Next live". The title shown is the schedule's
+  **Description**, or its **Name** if the description is blank.
+  Current list: Sundays 1459, Saturdays 1460, Weekday (Sun-Fri) 2114,
+  Revival Nights 1931, Christmas Eve 1570, Christmas Eve Candlelight 1571,
+  Christmas Eve Eve 2004, Christmas Day 1572, Easter Thursday 4158,
+  Good Friday 1749, Easter Saturday Night 1750, Easter Sunday 1751.
+- `TimeZone`: dates in responses are church local time.
+
+## Response shapes
+
+Message:
+`{ "id", "title", "description", "date", "speaker", "image", "videoUrl", "seriesId", "seriesTitle" }`
+
+Series:
+`{ "id", "title", "description", "date", "image", "messageCount", "url" }`
+
+`home`:
+`{ "timeZone", "generatedAt", "live": {title, startTime, videoUrl} | null,
+   "upcoming": [{start, title}], "hero": Message | null,
+   "rows": [ {id, title, type: "messages"|"series", items: [...], seriesId?, seeAllUrl?} ] }`
+
+`series`: `{ "series": Series, "messages": [Message] }`
+`series-list`: `{ "title", "series": [Series] }`
+Errors: `{ "error": "..." }`
+
+`image` is a Rock path (`/GetImage.ashx?Guid=...`); apps add the host and
+`&maxwidth=` for the size they need. Dates are `yyyy-MM-ddTHH:mm:ss` local.
+
+## Maintenance notes
+
+- Hard-coded IDs (commented at the top of each file): channels 28 Sermons and
+  26 Life Group Video Series; attributes 8885 series PosterImage, 8888 HLSVideo,
+  8887 Speaker, 8914 message PosterImage.
+- Strings use `| ToJSON` (a complete, escaped, quoted string). Never wrap it in
+  quotes and never use `ToJSONSafeString`.
+- Lists write the comma before each item (`sep`), so there's never a trailing comma.
+- `check_tv_api.py` crawls every endpoint, series and message and reports
+  anything invalid. Run it after any template change.
