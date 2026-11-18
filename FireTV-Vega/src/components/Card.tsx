@@ -63,8 +63,18 @@ export const Card = ({
             accessible={false}
             aria-label=""
             source={{uri: src}}
-            style={[styles.image, overlayTitle ? styles.dimmed : null]}
+            style={styles.image}
             resizeMode="cover"
+          />
+        ) : null}
+        {overlayTitle ? (
+          // Dark fade behind the title only; the artwork stays full brightness.
+          <Image
+            source={require('../assets/fade-down.png')}
+            aria-hidden
+            accessible={false}
+            style={styles.titleShade}
+            resizeMode="stretch"
           />
         ) : null}
         {overlayTitle ? (
@@ -107,7 +117,13 @@ const styles = scaledStyles({
   },
   artFocused: {borderColor: colors.blue, transform: [{scale: 1.05}]},
   image: {width: '100%', height: '100%'},
-  dimmed: {opacity: 0.5},
+  titleShade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 150,
+  },
   overlayTitle: {
     position: 'absolute',
     left: 20,
@@ -116,6 +132,9 @@ const styles = scaledStyles({
     color: colors.text,
     fontSize: 28,
     fontWeight: '700',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 4,
   },
   track: {
     position: 'absolute',
