@@ -1,7 +1,7 @@
 import {useTVEventHandler} from '@amazon-devices/react-native-kepler';
 import type {VideoPlayer} from '@amazon-devices/react-native-w3cmedia';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Image, Pressable, Text, View} from 'react-native';
+import {Image, Text, View} from 'react-native';
 import {playbackTime} from '../api/format';
 import {colors} from '../config';
 import {scaledStyles} from '../scale';
@@ -9,6 +9,8 @@ import {scaledStyles} from '../scale';
 /** Hide the controls after this long without a button press. */
 const HIDE_AFTER_MS = 5000;
 const SKIP_SECONDS = 10;
+
+type ButtonId = 'back' | 'play' | 'forward' | 'cc';
 
 interface Props {
   video: VideoPlayer;
@@ -22,9 +24,13 @@ interface Props {
 
 /**
  * Our own playback controls, so they line up with the rest of the app and
- * have a captions button. Any remote button shows them; they fade after a
- * few seconds unless paused. Play/pause, rewind and fast-forward on the
- * remote work whether or not the controls are showing.
+ * have a captions button.
+ *
+ * The remote is handled here directly (not through Vega's focus system,
+ * which wouldn't move between these buttons over the video): Left/Right
+ * pick a button, Select presses it. Any button shows the controls; they
+ * fade after a few seconds unless paused, and the first Select only brings
+ * them back. Play/pause, rewind and fast-forward on the remote always work.
  */
 export const PlayerControls = ({
   video,
@@ -35,14 +41,24 @@ export const PlayerControls = ({
   captionsOn,
   onToggleCaptions,
 }: Props) => {
+  const buttons: ButtonId[] = [
+    ...(live ? [] : (['back'] as ButtonId[])),
+    'play',
+    ...(live ? [] : (['forward'] as ButtonId[])),
+    ...(hasCaptions ? (['cc'] as ButtonId[]) : []),
+  ];
+
   const [visible, setVisible] = useState(true);
+  const [selected, setSelected] = useState<ButtonId>('play');
   const [paused, setPaused] = useState(false);
   const [time, setTime] = useState({current: 0, duration: 0});
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  const visibleRef = useRef(true);
 
   const show = useCallback(() => {
+    visibleRef.current = true;
     setVisible(true);
     if (hideTimer.current) {
       clearTimeout(hideTimer.current);
@@ -50,7 +66,9 @@ export const PlayerControls = ({
     hideTimer.current = setTimeout(() => {
       // Stay up while paused so people can see where they are.
       if (!video.paused) {
+        visibleRef.current = false;
         setVisible(false);
+        setSelected('play');
       }
     }, HIDE_AFTER_MS);
   }, [video]);
@@ -107,52 +125,69 @@ export const PlayerControls = ({
     [video, live, show],
   );
 
+  const press = (id: ButtonId) => {
+    switch (id) {
+      case 'back':
+        return skip(-SKIP_SECONDS);
+      case 'forward':
+        return skip(SKIP_SECONDS);
+      case 'play':
+        return togglePlay();
+      case 'cc':
+        onToggleCaptions();
+        return show();
+    }
+  };
+
+  const move = (step: number) => {
+    const i = Math.max(0, buttons.indexOf(selected));
+    const next = Math.min(buttons.length - 1, Math.max(0, i + step));
+    setSelected(buttons[next]);
+    show();
+  };
+
   useTVEventHandler((evt) => {
-    // Act once per press (some remotes send key down and key up).
+    // Act once per press: ignore key-up when the remote sends down and up.
     if (evt?.eventKeyAction === 1) {
       return;
     }
+    const wasVisible = visibleRef.current;
     switch (evt?.eventType) {
       case 'playpause':
       case 'pause':
-        togglePlay();
-        break;
+        return togglePlay();
       case 'rewind':
       case 'skip_backward':
-        skip(-SKIP_SECONDS);
-        break;
+        return skip(-SKIP_SECONDS);
       case 'forward':
       case 'fastforward':
       case 'fast_forward':
       case 'skip_forward':
-        skip(SKIP_SECONDS);
-        break;
+        return skip(SKIP_SECONDS);
       case 'back':
-        break; // the app's Back handler closes the player
+        return; // the app's Back handler closes the player
+      case 'left':
+        return wasVisible ? move(-1) : show();
+      case 'right':
+        return wasVisible ? move(1) : show();
+      case 'select':
+      case 'enter':
+        return wasVisible ? press(selected) : show();
       default:
-        show();
+        return show();
     }
   });
 
   if (!visible) {
-    // Invisible catcher: the first Select only brings the controls back.
-    return (
-      <Pressable
-        style={styles.catcher}
-        hasTVPreferredFocus
-        role="button"
-        aria-label="Show playback controls"
-        accessibilityHint="Shows play, pause, skip and captions"
-        onPress={show}
-      />
-    );
+    return null;
   }
 
   const progress =
     time.duration > 0 ? Math.min(1, time.current / time.duration) : 0;
+  const on = (id: ButtonId) => selected === id;
 
   return (
-    <View style={styles.wrap} pointerEvents="box-none">
+    <View style={styles.wrap} pointerEvents="none">
       <Image
         source={require('../assets/fade-down.png')}
         aria-hidden
@@ -191,78 +226,47 @@ export const PlayerControls = ({
         <View style={styles.buttons}>
           <View style={styles.transport}>
             {live ? null : (
-              <ControlButton
-                label={`Back ${SKIP_SECONDS} seconds`}
-                onPress={() => skip(-SKIP_SECONDS)}
-                onFocus={show}>
-                {(focused) => (
-                  <Text style={[styles.glyph, focused && styles.glyphFocused]}>
-                    −10
-                  </Text>
-                )}
-              </ControlButton>
+              <Button selected={on('back')} label="Back 10 seconds">
+                <Text style={[styles.glyph, on('back') && styles.glyphOn]}>
+                  −10
+                </Text>
+              </Button>
             )}
-            <ControlButton
-              label={paused ? 'Play' : 'Pause'}
-              big
-              hasTVPreferredFocus
-              onPress={togglePlay}
-              onFocus={show}>
-              {(focused) =>
-                paused ? (
-                  <View
-                    style={[styles.playIcon, focused && styles.playFocused]}
-                  />
-                ) : (
-                  <View style={styles.pauseIcon}>
-                    <View
-                      style={[styles.pauseBar, focused && styles.barFocused]}
-                    />
-                    <View
-                      style={[styles.pauseBar, focused && styles.barFocused]}
-                    />
-                  </View>
-                )
-              }
-            </ControlButton>
+            <Button big selected={on('play')} label={paused ? 'Play' : 'Pause'}>
+              {paused ? (
+                <View style={[styles.playIcon, on('play') && styles.playOn]} />
+              ) : (
+                <View style={styles.pauseIcon}>
+                  <View style={[styles.pauseBar, on('play') && styles.barOn]} />
+                  <View style={[styles.pauseBar, on('play') && styles.barOn]} />
+                </View>
+              )}
+            </Button>
             {live ? null : (
-              <ControlButton
-                label={`Forward ${SKIP_SECONDS} seconds`}
-                onPress={() => skip(SKIP_SECONDS)}
-                onFocus={show}>
-                {(focused) => (
-                  <Text style={[styles.glyph, focused && styles.glyphFocused]}>
-                    +10
-                  </Text>
-                )}
-              </ControlButton>
+              <Button selected={on('forward')} label="Forward 10 seconds">
+                <Text style={[styles.glyph, on('forward') && styles.glyphOn]}>
+                  +10
+                </Text>
+              </Button>
             )}
           </View>
 
           {hasCaptions ? (
-            <ControlButton
-              label={captionsOn ? 'Captions on' : 'Captions off'}
+            <Button
               wide
-              onPress={() => {
-                onToggleCaptions();
-                show();
-              }}
-              onFocus={show}>
-              {(focused) => (
-                <View style={styles.ccRow}>
-                  <View style={[styles.ccBox, focused && styles.ccBoxFocused]}>
-                    <Text
-                      style={[styles.ccText, focused && styles.glyphFocused]}>
-                      CC
-                    </Text>
-                  </View>
-                  <Text
-                    style={[styles.ccLabel, focused && styles.glyphFocused]}>
-                    {captionsOn ? 'On' : 'Off'}
+              selected={on('cc')}
+              label={captionsOn ? 'Captions on' : 'Captions off'}>
+              <View style={styles.ccRow}>
+                <View style={[styles.ccBox, on('cc') && styles.ccBoxOn]}>
+                  <Text style={[styles.ccText, on('cc') && styles.glyphOn]}>
+                    CC
                   </Text>
                 </View>
-              )}
-            </ControlButton>
+                <Text style={[styles.ccLabel, on('cc') && styles.glyphOn]}>
+                  {captionsOn ? 'On' : 'Off'}
+                </Text>
+              </View>
+            </Button>
           ) : null}
         </View>
       </View>
@@ -270,49 +274,34 @@ export const PlayerControls = ({
   );
 };
 
-const ControlButton = ({
-  label,
+/** A control button; "selected" is the one Left/Right has landed on. */
+const Button = ({
+  selected,
   big,
   wide,
-  hasTVPreferredFocus,
-  onPress,
-  onFocus,
+  label,
   children,
 }: {
-  label: string;
+  selected: boolean;
   big?: boolean;
   wide?: boolean;
-  hasTVPreferredFocus?: boolean;
-  onPress: () => void;
-  onFocus: () => void;
-  children: (focused: boolean) => React.ReactNode;
-}) => {
-  const [focused, setFocused] = useState(false);
-  return (
-    <Pressable
-      role="button"
-      aria-label={label}
-      accessibilityHint={label}
-      hasTVPreferredFocus={hasTVPreferredFocus}
-      onPress={onPress}
-      onFocus={() => {
-        setFocused(true);
-        onFocus();
-      }}
-      onBlur={() => setFocused(false)}
-      style={[
-        styles.button,
-        big && styles.buttonBig,
-        wide && styles.buttonWide,
-        focused && styles.buttonFocused,
-      ]}>
-      {children(focused)}
-    </Pressable>
-  );
-};
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <View
+    aria-label={label}
+    aria-selected={selected}
+    style={[
+      styles.button,
+      big && styles.buttonBig,
+      wide && styles.buttonWide,
+      selected && styles.buttonOn,
+    ]}>
+    {children}
+  </View>
+);
 
 const styles = scaledStyles({
-  catcher: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0},
   wrap: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0},
   shade: {position: 'absolute', left: 0, right: 0, bottom: 0, height: 520},
   panel: {
@@ -371,13 +360,13 @@ const styles = scaledStyles({
   },
   buttonBig: {width: 112, height: 112, borderRadius: 56},
   buttonWide: {width: 200},
-  buttonFocused: {
+  buttonOn: {
     backgroundColor: colors.focusRing,
     borderColor: colors.focusRing,
     transform: [{scale: 1.08}],
   },
   glyph: {color: colors.text, fontSize: 28, fontWeight: '700'},
-  glyphFocused: {color: colors.background},
+  glyphOn: {color: colors.background},
   playIcon: {
     width: 0,
     height: 0,
@@ -389,7 +378,7 @@ const styles = scaledStyles({
     borderBottomColor: 'transparent',
     borderLeftColor: colors.text,
   },
-  playFocused: {borderLeftColor: colors.background},
+  playOn: {borderLeftColor: colors.background},
   pauseIcon: {flexDirection: 'row', gap: 10},
   pauseBar: {
     width: 10,
@@ -397,7 +386,7 @@ const styles = scaledStyles({
     borderRadius: 2,
     backgroundColor: colors.text,
   },
-  barFocused: {backgroundColor: colors.background},
+  barOn: {backgroundColor: colors.background},
   ccRow: {flexDirection: 'row', alignItems: 'center', gap: 14},
   ccBox: {
     borderWidth: 3,
@@ -405,7 +394,7 @@ const styles = scaledStyles({
     borderRadius: 6,
     paddingHorizontal: 6,
   },
-  ccBoxFocused: {borderColor: colors.background},
+  ccBoxOn: {borderColor: colors.background},
   ccText: {color: colors.text, fontSize: 24, fontWeight: '700'},
   ccLabel: {color: colors.text, fontSize: 26, fontWeight: '600'},
 });
