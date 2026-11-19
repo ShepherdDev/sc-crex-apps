@@ -64,6 +64,7 @@ sub showSection(section as String)
 
     if section = "home" then
         s = CreateObject("roSGNode", "HomeScreen")
+        s.continueWatching = LoadProgress()
         if m.homeData <> invalid then s.home = m.homeData
     else if section = "live" then
         s = CreateObject("roSGNode", "LiveScreen")
@@ -129,6 +130,10 @@ sub playMessage(message as Object)
     content.url = message.videoUrl
     content.title = message.title
     content.streamFormat = "hls"
+    ' Pick up where they left off.
+    resumeAt = ResumePosition(message.id)
+    if resumeAt > 0 then content.playStart = resumeAt
+    m.playing = { message: message, live: false, saved: false }
     startPlayer(content)
 end sub
 
@@ -141,6 +146,7 @@ sub playLive()
     ' Live: never set a seek position. With a DVR window, seek = 0 jumps to the
     ' start of the window instead of the live point (the 1.2 bug).
     content.live = true
+    m.playing = { message: invalid, live: true, saved: false }
     startPlayer(content)
 end sub
 
@@ -173,6 +179,11 @@ sub onPlayerState(event as Object)
         print "[player] error "; m.player.errorCode; " "; m.player.errorMsg
         closePlayer()
     else if state = "finished" then
+        ' Watched to the end: drop it from Continue Watching.
+        if m.playing <> invalid and not m.playing.live then
+            SaveProgress(m.playing.message, 0, 0)
+            m.playing.saved = true
+        end if
         closePlayer()
     end if
 end sub
@@ -194,9 +205,17 @@ end sub
 
 sub closePlayer()
     if m.player = invalid then return
+    if m.playing <> invalid and not m.playing.live and not m.playing.saved then
+        SaveProgress(m.playing.message, Int(m.player.position), Int(m.player.duration))
+    end if
+    m.playing = invalid
     m.player.control = "stop"
     m.top.removeChild(m.player)
     m.player = invalid
+    progress = LoadProgress()
+    for each s in m.stack
+        if s.subtype() = "HomeScreen" then s.continueWatching = progress
+    end for
     focusScreen()
     loadHome()
     m.timer.control = "start"

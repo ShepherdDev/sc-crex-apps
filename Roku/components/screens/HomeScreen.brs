@@ -15,6 +15,10 @@ sub init()
     m.errorView = m.top.findNode("errorView")
     m.errorText = m.top.findNode("errorText")
     m.retry = m.top.findNode("retry")
+    m.slide = m.top.findNode("slide")
+    m.rowsMove = m.top.findNode("rowsMove")
+    m.heroFade = m.top.findNode("heroFade")
+    m.slidUp = false
 
     m.heroSeries.font = MakeFont(24, true)
     m.heroSeries.color = m.cfg.blue
@@ -124,12 +128,30 @@ sub updatePill(home as Object)
     m.pill.visible = true
 end sub
 
+sub onContinue()
+    if m.top.home <> invalid then
+        updateRows(m.top.home)
+        applyFocus()
+    end if
+end sub
+
 sub updateRows(home as Object)
-    key = FormatJson(home.rows)
+    progress = m.top.continueWatching
+    if progress = invalid then progress = []
+    key = FormatJson({ rows: home.rows, progress: progress })
     if key = m.rowsKey then return
     m.rowsKey = key
 
+    ' Rebuilding resets the list's position, so remember where focus was.
+    focused = m.rows.rowItemFocused
     root = CreateObject("roSGNode", "ContentNode")
+    if progress.Count() > 0 then
+        r = root.createChild("ContentNode")
+        r.title = "Continue Watching"
+        for each p in progress
+            NewProgressNode(r, p, 400)
+        end for
+    end if
     for each row in home.rows
         if row.items <> invalid and row.items.Count() > 0 then
             r = root.createChild("ContentNode")
@@ -143,6 +165,11 @@ sub updateRows(home as Object)
         end if
     end for
     m.rows.content = root
+    if m.area = "rows" and focused <> invalid and focused.Count() = 2 then
+        row = focused[0]
+        if row >= root.getChildCount() then row = root.getChildCount() - 1
+        if row >= 0 then m.rows.jumpToRowItem = [row, 0]
+    end if
 end sub
 
 sub onError()
@@ -176,15 +203,23 @@ sub applyFocus()
     m.retry.isFocused = inScreen and m.area = "error"
 
     ' With focus in the rows, slide them up over the hero so more rows fit.
-    if m.area = "rows" then
-        m.rows.translation = [472, 120]
-        m.hero.opacity = 0
-    else
-        m.rows.translation = [472, 716]
-        m.hero.opacity = 1
-    end if
+    slideTo(m.area = "rows")
     if inScreen and m.area = "rows" and not m.rows.hasFocus() then m.rows.setFocus(true)
     if inScreen and m.area <> "rows" and m.rows.hasFocus() then m.top.setFocus(true)
+end sub
+
+sub slideTo(up as Boolean)
+    if up = m.slidUp then return
+    m.slidUp = up
+    m.slide.control = "stop"
+    if up then
+        m.rowsMove.keyValue = [m.rows.translation, [472, 120]]
+        m.heroFade.keyValue = [m.hero.opacity, 0.0]
+    else
+        m.rowsMove.keyValue = [m.rows.translation, [472, 716]]
+        m.heroFade.keyValue = [m.hero.opacity, 1.0]
+    end if
+    m.slide.control = "start"
 end sub
 
 function onKeyEvent(key as String, press as Boolean) as Boolean

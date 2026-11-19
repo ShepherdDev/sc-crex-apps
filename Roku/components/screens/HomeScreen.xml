@@ -5,6 +5,8 @@
     <!-- The /home response, set by MainScene every refresh -->
     <field id="home" type="assocarray" onChange="onHome" />
     <field id="error" type="string" onChange="onError" />
+    <!-- Saved progress (see progress.brs), newest first -->
+    <field id="continueWatching" type="array" onChange="onContinue" />
     <!-- Set to ask MainScene to go somewhere: { name, ... } -->
     <field id="navigate" type="assocarray" alwaysNotify="true" />
   </interface>
@@ -46,6 +48,12 @@
       vertFocusAnimationStyle="fixedFocus"
       focusBitmapUri="pkg:/images/focus-ring.9.png"
       focusFootprintBlendColor="0x00000000" />
+
+    <!-- Rows slide up over the hero when focus moves into them -->
+    <Animation id="slide" duration="0.25" easeFunction="outCubic">
+      <Vector2DFieldInterpolator id="rowsMove" key="[0.0, 1.0]" fieldToInterp="rows.translation" />
+      <FloatFieldInterpolator id="heroFade" key="[0.0, 1.0]" fieldToInterp="hero.opacity" />
+    </Animation>
 
     <Group id="errorView" visible="false">
       <Label id="errorText" translation="[472,400]" width="1100" wrap="true" />

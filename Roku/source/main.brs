@@ -5,7 +5,7 @@ sub Main(args as Dynamic)
     port = CreateObject("roMessagePort")
     screen.setMessagePort(port)
 
-    scene = screen.CreateScene("MainScene")
+    screen.CreateScene("MainScene")
     screen.show()
 
     while true

@@ -5,6 +5,7 @@
 -->
 <component name="MainScene" extends="Scene">
   <script type="text/brightscript" uri="pkg:/source/lib/config.brs" />
+  <script type="text/brightscript" uri="pkg:/source/lib/progress.brs" />
   <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
   <children>
     <Group id="screens" />

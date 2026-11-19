@@ -20,5 +20,10 @@
     <Label id="title" maxLines="2" wrap="true" vertAlign="bottom" />
     <Label id="meta" />
     <Label id="seeAll" horizAlign="center" vertAlign="center" visible="false" />
+    <!-- Continue Watching: how far in -->
+    <Rectangle id="track" color="0xFFFFFF40" height="6" visible="false" />
+    <Rectangle id="bar" height="6" visible="false" />
+    <!-- Rounds the corners by covering them in the background color -->
+    <Poster id="mask" uri="pkg:/images/card-mask.9.png" />
   </children>
 </component>
