@@ -1,0 +1,48 @@
+{%- comment -%}
+  GET /tv/message?id=<IdKey>     one published message, for deep links
+                                 (Roku certification opens the app straight to a message)
+  Returns { "message": Message } or { "error": "..." }.
+  Only messages in a series in channels 26 or 28 are served.
+  Enabled Lava Commands: Sql      Cache: 300 seconds
+  Attributes: 8885 series PosterImage, 8888 HLSVideo, 8887 Speaker, 8914 message PosterImage
+{%- endcomment -%}
+{%- assign messageId = QueryString.id | FromIdHash -%}
+{%- if messageId == null or messageId == empty -%}
+{ "error": "Message not found." }
+{%- else -%}
+  {%- sql messageId:'{{ messageId }}' -%}
+  SELECT TOP 1 C.[Id], C.[Title], C.[Content], C.[StartDateTime],
+         SP.[Value] AS [Speaker], H.[Value] AS [VideoUrl],
+         COALESCE(NULLIF(PI.[Value], ''), SPI.[Value]) AS [Poster],
+         S.[Id] AS [SeriesId], S.[Title] AS [SeriesTitle]
+  FROM [ContentChannelItem] C
+  INNER JOIN [AttributeValue] H ON H.[EntityId] = C.[Id] AND H.[AttributeId] = 8888
+  INNER JOIN [ContentChannelItemAssociation] A ON A.[ChildContentChannelItemId] = C.[Id]
+  INNER JOIN [ContentChannelItem] S ON S.[Id] = A.[ContentChannelItemId] AND S.[ContentChannelId] IN (26, 28)
+  LEFT JOIN [AttributeValue] SP ON SP.[EntityId] = C.[Id] AND SP.[AttributeId] = 8887
+  LEFT JOIN [AttributeValue] PI ON PI.[EntityId] = C.[Id] AND PI.[AttributeId] = 8914
+  LEFT JOIN [AttributeValue] SPI ON SPI.[EntityId] = S.[Id] AND SPI.[AttributeId] = 8885
+  WHERE C.[Id] = @messageId
+    AND C.[StartDateTime] <= GETDATE()
+    AND H.[Value] LIKE 'http%'
+  ORDER BY S.[StartDateTime] DESC
+  {%- endsql -%}
+  {%- assign m = results | First -%}
+  {%- if m == null or m == empty -%}
+{ "error": "Message not found." }
+  {%- else -%}
+{
+  "message": {
+    "id": "{{ m.Id | ToIdHash }}",
+    "title": {{ m.Title | Default:'' | ToJSON }},
+    "description": {{ m.Content | StripHtml | HtmlDecode | Trim | Default:'' | ToJSON }},
+    "date": "{{ m.StartDateTime | Date:'yyyy-MM-ddTHH:mm:ss' }}",
+    "speaker": {{ m.Speaker | Default:'' | ToJSON }},
+    "image": {%- if m.Poster != empty -%}"/GetImage.ashx?Guid={{ m.Poster }}"{%- else -%}null{%- endif -%},
+    "videoUrl": {{ m.VideoUrl | ToJSON }},
+    "seriesId": "{{ m.SeriesId | ToIdHash }}",
+    "seriesTitle": {{ m.SeriesTitle | Default:'' | ToJSON }}
+  }
+}
+  {%- endif -%}
+{%- endif -%}

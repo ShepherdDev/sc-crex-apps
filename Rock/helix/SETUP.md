@@ -11,6 +11,7 @@ Base URL: `https://rock.shepherdchurch.net/api/v2/lava-app/1/tv`
 | `home` | Rock Entity, Sql | 60 s | Live status, upcoming streams, banner message, home rows |
 | `series` | Sql | 300 s | One series and its messages (`?id=<IdKey>` or `?id=current&channel=sermons\|lifegroups`) |
 | `series-list` | Sql | 300 s | Every series with a published video (`?channel=sermons\|lifegroups`) |
+| `message` | Sql | 300 s | One message by id (`?id=<IdKey>`), for deep links from the Roku home screen and search |
 
 ## Setup in Rock (prod)
 
@@ -19,7 +20,7 @@ Base URL: `https://rock.shepherdchurch.net/api/v2/lava-app/1/tv`
    - Configuration: paste `configuration.json`
 2. **Application security** (lock icon): **All Users → Execute View → Allow**.
 3. **Each endpoint** (Endpoints → Add):
-   - Name and Slug: `home`, `series`, `series-list`
+   - Name and Slug: `home`, `series`, `series-list`, `message`
    - HTTP Method: **Get**
    - Security Mode: **Application View**
    - Enable Cross-Site Forgery Protection: **off** (TVs can't send the token; these are read-only)
@@ -55,6 +56,7 @@ Series:
 
 `series`: `{ "series": Series, "messages": [Message] }`
 `series-list`: `{ "title", "series": [Series] }`
+`message`: `{ "message": Message }`
 Errors: `{ "error": "..." }`
 
 `image` is a Rock path (`/GetImage.ashx?Guid=...`); apps add the host and

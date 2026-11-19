@@ -59,6 +59,12 @@ if home:
         print("upcoming:", home.get("upcoming"))
         if home.get("hero"):
             check_message(home["hero"], "home hero")
+            # Deep-link lookup: the hero must come back the same from /message.
+            one = get("message?id=" + home["hero"]["id"])
+            if not one or "message" not in one:
+                problems.append(f"message?id={home['hero']['id']}: {one}")
+            elif one["message"]["videoUrl"] != home["hero"]["videoUrl"]:
+                problems.append("message endpoint disagrees with home hero")
         for row in home.get("rows", []):
             print(f"row {row.get('id')}: {len(row.get('items') or [])} items")
             if row.get("type") == "messages":
