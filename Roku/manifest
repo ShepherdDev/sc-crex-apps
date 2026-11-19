@@ -1,10 +1,10 @@
 title=Shepherd Church
 major_version=2
 minor_version=0
-build_version=8
+build_version=9
 
 # Channel Icons
-mm_icon_focus_sd=pkg:/images/App-Icon-SD-214x144.png
+mm_icon_focus_sd=pkg:/images/App-Icon-SD-246x140.png
 mm_icon_focus_hd=pkg:/images/App-Icon-HD-290x218.png
 mm_icon_focus_fhd=pkg:/images/App-Icon-FHD-540x405.png
 
@@ -18,3 +18,9 @@ splash_min_time=0
 # Everything is laid out for 1920x1080, the same design size as the Fire TV app.
 # Roku scales it down on HD devices.
 ui_resolutions=fhd
+
+# SceneGraph 1.3 (required by Roku certification; needs Roku OS 15.1+)
+rsg_version=1.3
+
+# Deep links can arrive while the channel is running (handled with roInput in main.brs)
+supports_input_launch=1
