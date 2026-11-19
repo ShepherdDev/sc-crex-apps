@@ -85,47 +85,68 @@ private struct HeroView: View {
                 }
             }
 
+            // Same banner as the Fire TV app: while live, the live stream is front and
+            // center with a single Join Live button; otherwise the latest message.
             VStack(alignment: .leading, spacing: 0) {
-                if let hero = home.hero {
-                    Text((hero.seriesTitle ?? "").uppercased())
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(Color.shepherdBlue)
-                        .padding(.bottom, 14)
-                    Text(hero.title)
-                        .font(.system(size: 56, weight: .bold))
+                if let live = home.live {
+                    HStack(spacing: 16) {
+                        LiveBadge()
+                        Text("Started at \(Format.startTimeLabel(live.startTime))")
+                            .font(.system(size: 28))
+                            .foregroundStyle(Color.textMuted)
+                    }
+                    .padding(.bottom, 18)
+                    Text(live.title)
+                        .font(.system(size: 84, weight: .bold))
                         .foregroundStyle(.white)
                         .lineLimit(2)
-                        .frame(maxWidth: 900, alignment: .leading)
                         .padding(.bottom, 18)
-                    Text(Format.messageMeta(date: hero.date, speaker: hero.speaker))
-                        .font(.system(size: 24))
+                    Text("Streaming live from Shepherd Church")
+                        .font(.system(size: 28))
                         .foregroundStyle(Color.textMuted)
-                        .padding(.bottom, 22)
-                    Text(hero.description ?? "")
-                        .font(.system(size: 24))
-                        .foregroundStyle(Color.textDim)
-                        .lineLimit(3)
-                        .frame(maxWidth: 760, alignment: .leading)
-                        .padding(.bottom, 40)
-                } else {
-                    Text("Shepherd Church")
-                        .font(.system(size: 56, weight: .bold))
-                        .padding(.bottom, 40)
-                }
-
-                HStack(spacing: 24) {
-                    if home.live != nil {
-                        Button("Watch Live") { app.playLive() }
+                    HStack(spacing: 20) {
+                        Button { app.playLive() } label: { Label("Join Live", systemImage: "play.fill") }
                             .buttonStyle(PillButtonStyle(primary: true))
                             .prefersDefaultFocus(true, in: focusScope)
                     }
-                    if let hero = home.hero {
-                        Button("Watch Now") { app.play(hero) }
-                            .buttonStyle(PillButtonStyle(primary: home.live == nil))
-                            .prefersDefaultFocus(home.live == nil, in: focusScope)
+                    .padding(.top, 36)
+                } else if let hero = home.hero {
+                    Text("LATEST MESSAGE")
+                        .font(.system(size: 24, weight: .bold))
+                        .tracking(3)
+                        .foregroundStyle(Color.shepherdBlue)
+                        .padding(.bottom, 18)
+                    Text(hero.title)
+                        .font(.system(size: 84, weight: .bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                        .padding(.bottom, 18)
+                    Text([hero.seriesTitle, hero.speaker].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
+                        .font(.system(size: 28))
+                        .foregroundStyle(Color.textMuted)
+                        .lineLimit(1)
+                    if let description = hero.description, !description.isEmpty {
+                        Text(description)
+                            .font(.system(size: 26))
+                            .foregroundStyle(Color(hex: 0xE3E6EA))
+                            .lineSpacing(6)
+                            .lineLimit(3)
+                            .padding(.top, 18)
                     }
+                    HStack(spacing: 20) {
+                        Button { app.play(hero) } label: { Label("Watch Now", systemImage: "play.fill") }
+                            .buttonStyle(PillButtonStyle(primary: true))
+                            .prefersDefaultFocus(true, in: focusScope)
+                        if let seriesId = hero.seriesId {
+                            Button("View Series") { app.path.append(.series(path: "series?id=\(seriesId)")) }
+                                .buttonStyle(PillButtonStyle(primary: false))
+                        }
+                    }
+                    .padding(.top, 36)
                 }
             }
+            .frame(width: 640, alignment: .leading)
             .padding(.leading, Config.sideMargin)
             .padding(.top, 140)
 
@@ -141,5 +162,21 @@ private struct HeroView: View {
         }
         .frame(height: 652)
         .focusSection()
+    }
+}
+
+/// Red "● LIVE NOW" badge.
+private struct LiveBadge: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            Circle().fill(Color.white).frame(width: 14, height: 14)
+            Text("LIVE NOW")
+                .font(.system(size: 24, weight: .bold))
+                .tracking(3)
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.shepherdRed))
     }
 }
