@@ -35,15 +35,26 @@ function ImageUrl(path as Dynamic, width as Integer) as String
     return url
 end function
 
-' A system font at a given size.
+' A system font at a given size. Fonts are shared app-wide (one per size and
+' weight) so a screen full of cards doesn't create hundreds of font objects,
+' which is slow on older Rokus.
 function MakeFont(size as Integer, bold = false as Boolean) as Object
-    font = CreateObject("roSGNode", "Font")
-    if bold then
-        font.uri = "font:BoldSystemFontFile"
-    else
-        font.uri = "font:SystemFontFile"
+    key = "r" + Str(size).Trim()
+    if bold then key = "b" + Str(size).Trim()
+    if not m.global.hasField("fonts") then m.global.addFields({ fonts: {} })
+    fonts = m.global.fonts
+    font = fonts[key]
+    if font = invalid then
+        font = CreateObject("roSGNode", "Font")
+        if bold then
+            font.uri = "font:BoldSystemFontFile"
+        else
+            font.uri = "font:SystemFontFile"
+        end if
+        font.size = size
+        fonts[key] = font
+        m.global.fonts = fonts
     end if
-    font.size = size
     return font
 end function
 

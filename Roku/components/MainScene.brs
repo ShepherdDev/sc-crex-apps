@@ -156,6 +156,7 @@ sub startPlayer(content as Object)
     video.observeField("state", "onPlayerState")
     m.top.appendChild(video)
     m.player = video
+    m.loggedTracks = false
     video.setFocus(true)
     video.control = "play"
     print "[player] "; content.url
@@ -164,11 +165,30 @@ end sub
 sub onPlayerState(event as Object)
     state = event.getData()
     print "[player] state "; state
+    if state = "playing" and not m.loggedTracks then
+        m.loggedTracks = true
+        logCaptions()
+    end if
     if state = "error" then
         print "[player] error "; m.player.errorCode; " "; m.player.errorMsg
         closePlayer()
     else if state = "finished" then
         closePlayer()
+    end if
+end sub
+
+' Diagnostics for captions: what tracks the player found in the stream.
+sub logCaptions()
+    v = m.player
+    print "[captions] global mode: "; v.globalCaptionMode
+    print "[captions] current track: "; v.subtitleTrack
+    tracks = v.availableSubtitleTracks
+    if tracks = invalid or tracks.Count() = 0 then
+        print "[captions] no subtitle tracks found"
+    else
+        for each t in tracks
+            print "[captions] track: "; FormatJson(t)
+        end for
     end if
 end sub
 
