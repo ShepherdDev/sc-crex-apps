@@ -20,14 +20,21 @@ sub init()
     m.heroFade = m.top.findNode("heroFade")
     m.slidUp = false
 
-    m.heroSeries.font = MakeFont(24, true)
-    m.heroSeries.color = m.cfg.blue
-    m.heroTitle.font = MakeFont(56, true)
+    m.liveBadge = m.top.findNode("liveBadge")
+    m.liveBadgeBg = m.top.findNode("liveBadgeBg")
+    m.liveBadgeText = m.top.findNode("liveBadgeText")
+    m.liveBadgeBg.blendColor = m.cfg.red
+    m.top.findNode("liveDot").blendColor = m.cfg.text
+    m.liveBadgeText.font = MakeFont(24, true)
+    m.liveBadgeText.color = m.cfg.text
+    m.liveBadgeText.width = 0
+    m.liveBadgeBg.width = 40 + m.liveBadgeText.boundingRect().width + 16
+    m.heroTitle.font = MakeFont(84, true)
     m.heroTitle.color = m.cfg.text
-    m.heroMeta.font = MakeFont(24)
+    m.heroMeta.font = MakeFont(28)
     m.heroMeta.color = m.cfg.textMuted
-    m.heroDesc.font = MakeFont(24)
-    m.heroDesc.color = m.cfg.textDim
+    m.heroDesc.font = MakeFont(26)
+    m.heroDesc.color = "0xE3E6EAFF"
     m.pillBg.blendColor = "0x1A1D21E6"
     m.pillLead.font = MakeFont(24)
     m.pillLead.color = m.cfg.textMuted
@@ -70,27 +77,48 @@ sub updateHero(home as Object)
     hero = home.hero
     live = home.live
     ' Only rebuild when something changed, so a refresh doesn't move focus.
-    key = FormatJson({ hero: hero, live: (live <> invalid) })
+    key = FormatJson({ hero: hero, live: live })
     if key = m.heroKey then return
     m.heroKey = key
 
-    if hero <> invalid then
-        m.heroArt.uri = ImageUrl(hero.image, 1160)
-        m.heroSeries.text = UCase(hero.seriesTitle)
+    m.heroArt.uri = ""
+    if hero <> invalid then m.heroArt.uri = ImageUrl(hero.image, 1160)
+
+    actions = []
+    if live <> invalid then
+        ' Live: the stream is front and center, with one button.
+        m.liveBadge.visible = true
+        m.heroSeries.font = MakeFont(28)
+        m.heroSeries.color = m.cfg.textMuted
+        m.heroSeries.text = "Started at " + StartTimeLabel(live.startTime)
+        m.heroSeries.translation = [m.liveBadgeBg.width + 16, 0]
+        m.heroTitle.text = live.title
+        m.heroMeta.text = "Streaming live from Shepherd Church"
+        m.heroDesc.text = ""
+        actions.Push({ text: "Join Live", action: { name: "playLive" }, primary: true })
+    else if hero <> invalid then
+        m.liveBadge.visible = false
+        m.heroSeries.font = MakeFont(24, true)
+        m.heroSeries.color = m.cfg.blue
+        m.heroSeries.text = "LATEST MESSAGE"
+        m.heroSeries.translation = [0, 0]
         m.heroTitle.text = hero.title
-        m.heroMeta.text = MessageMeta(hero.date, hero.speaker)
+        meta = []
+        if hero.seriesTitle <> invalid and hero.seriesTitle <> "" then meta.Push(hero.seriesTitle)
+        if hero.speaker <> invalid and hero.speaker <> "" then meta.Push(hero.speaker)
+        m.heroMeta.text = meta.Join("  ·  ")
         m.heroDesc.text = hero.description
+        actions.Push({ text: "Watch Now", action: { name: "play", message: hero }, primary: true })
+        if hero.seriesId <> invalid and hero.seriesId <> "" then
+            actions.Push({ text: "View Series", action: { name: "series", path: "series?id=" + hero.seriesId }, primary: false })
+        end if
     else
-        m.heroArt.uri = ""
+        m.liveBadge.visible = false
         m.heroSeries.text = ""
         m.heroTitle.text = "Shepherd Church"
         m.heroMeta.text = ""
         m.heroDesc.text = ""
     end if
-
-    actions = []
-    if live <> invalid then actions.Push({ text: "Watch Live", action: { name: "playLive" }, primary: true })
-    if hero <> invalid then actions.Push({ text: "Watch Now", action: { name: "play", message: hero }, primary: (live = invalid) })
 
     m.buttonGroup.removeChildrenIndex(m.buttonGroup.getChildCount(), 0)
     m.buttons = []

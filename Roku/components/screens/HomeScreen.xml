@@ -19,11 +19,20 @@
       <Poster id="heroArt" translation="[760,0]" width="1160" height="652" loadWidth="1160" loadHeight="652" loadDisplayMode="scaleToZoom" />
       <Poster uri="pkg:/images/fade-right.png" translation="[760,0]" width="480" height="652" />
       <Poster uri="pkg:/images/fade-down.png" translation="[760,352]" width="1160" height="300" />
-      <LayoutGroup id="heroText" translation="[472,140]" itemSpacings="[14,18,22,40]">
-        <Label id="heroSeries" />
-        <Label id="heroTitle" width="900" maxLines="2" wrap="true" />
-        <Label id="heroMeta" />
-        <Label id="heroDesc" width="760" maxLines="3" wrap="true" />
+      <!-- Same banner as the Fire TV app: while live, the stream with Join Live only;
+           otherwise the latest message with Watch Now and View Series. -->
+      <LayoutGroup id="heroText" translation="[472,140]" itemSpacings="[18,18,18,36]">
+        <Group id="eyebrow">
+          <Group id="liveBadge" visible="false">
+            <Poster id="liveBadgeBg" uri="pkg:/images/rr6.9.png" height="44" />
+            <Poster id="liveDot" uri="pkg:/images/rr6.9.png" translation="[16,15]" width="14" height="14" />
+            <Label id="liveBadgeText" text="LIVE NOW" translation="[40,0]" height="44" vertAlign="center" />
+          </Group>
+          <Label id="heroSeries" height="44" vertAlign="center" />
+        </Group>
+        <Label id="heroTitle" width="640" maxLines="2" wrap="true" />
+        <Label id="heroMeta" width="640" />
+        <Label id="heroDesc" width="640" maxLines="3" wrap="true" lineSpacing="6" />
         <Group id="buttons" />
       </LayoutGroup>
       <Group id="pill" visible="false">
