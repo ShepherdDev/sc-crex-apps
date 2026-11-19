@@ -1,0 +1,46 @@
+# XcodeGen spec. Generates ShepherdTV.xcodeproj (not committed).
+#   brew install xcodegen
+#   cd AppleTV && xcodegen
+#   open ShepherdTV.xcodeproj
+name: ShepherdTV
+options:
+  deploymentTarget:
+    tvOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "2.0.0"
+    # Must be higher than the last build uploaded for this app (1.1 was build 5).
+    CURRENT_PROJECT_VERSION: "6"
+    SWIFT_VERSION: "5.0"
+targets:
+  ShepherdTV:
+    type: application
+    platform: tvOS
+    sources:
+      - path: ShepherdTV
+    info:
+      path: ShepherdTV/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Shepherd Church
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UIRequiredDeviceCapabilities: [arm64]
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchLogo
+        UIUserInterfaceStyle: Dark
+        # Deep links: shepherdtv://message/<id>, shepherdtv://series/<id>, shepherdtv://live
+        CFBundleURLTypes:
+          - CFBundleURLName: com.shepherdchurch.ATVApp
+            CFBundleURLSchemes: [shepherdtv]
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shepherdchurch.ATVApp
+        PRODUCT_NAME: ShepherdTV
+        TARGETED_DEVICE_FAMILY: "3"
+        ASSETCATALOG_COMPILER_APPICON_NAME: "App Icon & Top Shelf Image"
+        CODE_SIGN_STYLE: Automatic
+        # Pick the church's team once in Xcode (Signing & Capabilities); it is saved here after.
+        DEVELOPMENT_TEAM: ""
