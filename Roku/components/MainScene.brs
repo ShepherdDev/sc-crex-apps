@@ -14,6 +14,7 @@ sub init()
     m.homeData = invalid
     m.player = invalid
     m.launched = false
+    m.pendingLive = false
 
     showSection("home")
     focusScreen()
@@ -41,6 +42,10 @@ sub onHome(event as Object)
         for each s in m.stack
             if s.subtype() = "HomeScreen" then s.error = res.error
         end for
+    end if
+    if m.pendingLive and m.homeData <> invalid then
+        m.pendingLive = false
+        openLiveLink()
     end if
     if not m.launched then
         m.launched = true
@@ -119,6 +124,51 @@ sub onNavigate(event as Object)
         focusScreen()
     else if nav.name = "retry" then
         loadHome()
+    end if
+end sub
+
+' --- Deep links -------------------------------------------------------
+
+' Opens what the link points to, with Home underneath so Back lands on Home.
+sub onDeepLink()
+    link = m.top.deepLink
+    if link = invalid then return
+    mediaType = LCase(link.mediaType)
+    contentId = link.contentId
+    print "[deeplink] "; mediaType; " "; contentId
+    if m.player <> invalid then closePlayer()
+    if m.section <> "home" or m.stack.Count() > 1 then showSection("home")
+    focusScreen()
+
+    if mediaType = "live" or LCase(contentId) = "live" then
+        if m.homeData = invalid then
+            m.pendingLive = true  ' handled when Home finishes loading
+        else
+            openLiveLink()
+        end if
+    else if mediaType = "series" or mediaType = "season" then
+        pushScreen(gridScreen("series", "series?id=" + contentId, ""))
+        focusScreen()
+    else
+        m.linkTask = StartApi("message?id=" + contentId, "onDeepLinkMessage")
+    end if
+end sub
+
+sub onDeepLinkMessage(event as Object)
+    res = event.getData()
+    if res.ok and res.data.message <> invalid then
+        playMessage(res.data.message)
+    else
+        print "[deeplink] message not found"
+    end if
+end sub
+
+sub openLiveLink()
+    if m.homeData.live <> invalid then
+        playLive()
+    else
+        showSection("live")
+        focusScreen()
     end if
 end sub
 

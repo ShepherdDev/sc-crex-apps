@@ -4,6 +4,10 @@
   the video player on top when something is playing.
 -->
 <component name="MainScene" extends="Scene">
+  <interface>
+    <!-- { contentId, mediaType } from main.brs -->
+    <field id="deepLink" type="assocarray" alwaysNotify="true" onChange="onDeepLink" />
+  </interface>
   <script type="text/brightscript" uri="pkg:/source/lib/config.brs" />
   <script type="text/brightscript" uri="pkg:/source/lib/progress.brs" />
   <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
