@@ -19,7 +19,7 @@ struct SideMenu: View {
 
             ForEach(AppSection.allCases) { section in
                 Button {
-                    app.select(section)
+                    app.select(section, focusContent: true)
                 } label: {
                     MenuRow(
                         section: section,

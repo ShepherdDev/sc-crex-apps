@@ -117,6 +117,8 @@ struct CardRow: View {
 /// Grid used by series lists and series pages. 4 across, filling the content area.
 struct CardGrid: View {
     let cards: [CardModel]
+    /// Optional: lets the screen move focus to a card by id.
+    var focus: FocusState<String?>.Binding? = nil
     let onSelect: (CardModel) -> Void
     static let cardWidth: CGFloat = 320
 
@@ -124,9 +126,19 @@ struct CardGrid: View {
         LazyVGrid(columns: Array(repeating: GridItem(.fixed(Self.cardWidth), spacing: 32, alignment: .top), count: 4),
                   alignment: .leading, spacing: 48) {
             ForEach(cards) { card in
-                Button { onSelect(card) } label: { CardView(card: card, width: Self.cardWidth) }
-                    .buttonStyle(.card)
+                cardButton(card)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func cardButton(_ card: CardModel) -> some View {
+        let button = Button { onSelect(card) } label: { CardView(card: card, width: Self.cardWidth) }
+            .buttonStyle(.card)
+        if let focus {
+            button.focused(focus, equals: card.id)
+        } else {
+            button
         }
     }
 }

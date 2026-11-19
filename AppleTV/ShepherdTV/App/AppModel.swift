@@ -53,11 +53,20 @@ final class AppModel: ObservableObject {
     @Published var path: [Route] = []
     @Published var playing: PlayRequest?
 
+    /// Picking a section in the menu moves focus to that section's main control.
+    /// Screens watch `contentFocusRequest` and claim focus while `focusPending` is set.
+    @Published var contentFocusRequest = 0
+    var focusPending = false
+
     var isLive: Bool { home?.live != nil }
 
-    func select(_ section: AppSection) {
+    func select(_ section: AppSection, focusContent: Bool = false) {
         self.section = section
         path = []
+        if focusContent {
+            focusPending = true
+            contentFocusRequest += 1
+        }
     }
 
     func loadHome() async {

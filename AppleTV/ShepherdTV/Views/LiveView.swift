@@ -3,8 +3,25 @@ import SwiftUI
 /// Watch Live: join the stream, or when we're not live, when the next one starts.
 struct LiveView: View {
     @ObservedObject var app: AppModel
+    @FocusState private var actionFocused: Bool
 
     var body: some View {
+        content
+            .onAppear { claimFocus() }
+            .onChange(of: app.contentFocusRequest) { claimFocus() }
+            .onChange(of: app.home?.generatedAt) { claimFocus() }
+    }
+
+    /// After picking Watch Live in the menu, put focus on Join Live / Catch Up.
+    private func claimFocus() {
+        guard app.focusPending, app.home != nil else { return }
+        DispatchQueue.main.async {
+            actionFocused = true
+            app.focusPending = false
+        }
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let home = app.home {
                 if let live = home.live {
@@ -12,6 +29,7 @@ struct LiveView: View {
                     detail("\(live.title)  ·  Started at \(Format.startTimeLabel(live.startTime))")
                     Button("Join Live") { app.playLive() }
                         .buttonStyle(PillButtonStyle())
+                        .focused($actionFocused)
                 } else {
                     title("We're not live right now")
                     if let next = home.upcoming.first {
@@ -23,6 +41,7 @@ struct LiveView: View {
                             app.path.append(.series(path: "series?id=\(seriesId)"))
                         }
                         .buttonStyle(PillButtonStyle())
+                        .focused($actionFocused)
                     }
                 }
             } else if let error = app.homeError {

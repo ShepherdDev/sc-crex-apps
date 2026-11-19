@@ -5,12 +5,30 @@ struct HomeView: View {
     @ObservedObject var app: AppModel
     let focusScope: Namespace.ID
     @ObservedObject private var progress = ProgressStore.shared
+    @FocusState private var heroFocused: Bool
 
     var body: some View {
+        content
+            .onAppear { claimFocus() }
+            .onChange(of: app.contentFocusRequest) { claimFocus() }
+            .onChange(of: app.home?.generatedAt) { claimFocus() }
+    }
+
+    /// After picking Home in the menu, put focus on Join Live / Watch Now.
+    private func claimFocus() {
+        guard app.focusPending, app.home != nil else { return }
+        DispatchQueue.main.async {
+            heroFocused = true
+            app.focusPending = false
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
         if let home = app.home {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 40) {
-                    HeroView(app: app, home: home, focusScope: focusScope)
+                    HeroView(app: app, home: home, focusScope: focusScope, primaryFocus: $heroFocused)
 
                     if !progress.items.isEmpty {
                         CardRow(title: "Continue Watching",
@@ -56,6 +74,7 @@ private struct HeroView: View {
     @ObservedObject var app: AppModel
     let home: HomeResponse
     let focusScope: Namespace.ID
+    var primaryFocus: FocusState<Bool>.Binding
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -108,6 +127,7 @@ private struct HeroView: View {
                         Button { app.playLive() } label: { Label("Join Live", systemImage: "play.fill") }
                             .buttonStyle(PillButtonStyle(primary: true))
                             .prefersDefaultFocus(true, in: focusScope)
+                            .focused(primaryFocus)
                     }
                     .padding(.top, 36)
                 } else if let hero = home.hero {
@@ -138,6 +158,7 @@ private struct HeroView: View {
                         Button { app.play(hero) } label: { Label("Watch Now", systemImage: "play.fill") }
                             .buttonStyle(PillButtonStyle(primary: true))
                             .prefersDefaultFocus(true, in: focusScope)
+                            .focused(primaryFocus)
                         if let seriesId = hero.seriesId {
                             Button("View Series") { app.path.append(.series(path: "series?id=\(seriesId)")) }
                                 .buttonStyle(PillButtonStyle(primary: false))

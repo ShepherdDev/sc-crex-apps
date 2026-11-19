@@ -13,6 +13,7 @@ struct SeriesListView: View {
     let path: String
     let title: String
     @State private var state: Load<SeriesListResponse> = .loading
+    @FocusState private var gridFocus: String?
 
     var body: some View {
         Group {
@@ -27,7 +28,7 @@ struct SeriesListView: View {
                         Text(data.title?.isEmpty == false ? data.title! : title)
                             .font(.system(size: 48, weight: .bold))
                             .foregroundStyle(.white)
-                        CardGrid(cards: CardModel.series(data.series)) { card in
+                        CardGrid(cards: CardModel.series(data.series), focus: $gridFocus) { card in
                             if case .series(let s) = card.kind { app.path.append(.series(path: s.url)) }
                         }
                     }
@@ -39,11 +40,22 @@ struct SeriesListView: View {
             }
         }
         .task(id: path) { await load() }
+        .onChange(of: app.contentFocusRequest) { claimFocus() }
     }
 
     private func load() async {
         state = .loading
         do { state = .loaded(try await API.seriesList(path)) } catch { state = .failed(API.describe(error)) }
+        claimFocus()
+    }
+
+    /// After picking Series / Life Groups in the menu, put focus on the first card.
+    private func claimFocus() {
+        guard app.focusPending, case .loaded(let data) = state, let first = data.series.first else { return }
+        DispatchQueue.main.async {
+            gridFocus = CardModel(kind: .series(first)).id
+            app.focusPending = false
+        }
     }
 }
 
