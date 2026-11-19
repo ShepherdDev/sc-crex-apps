@@ -18,14 +18,17 @@ struct RootView: View {
             NavigationStack(path: $app.path) {
                 sectionView
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    // We do our own TV-safe spacing (same numbers as the other apps),
+                    // so tvOS shouldn't add its margins on top.
+                    .ignoresSafeArea()
                     // Back from a section's first screen: go to the menu.
                     .onExitCommand { menuFocus = app.section }
                     .navigationDestination(for: Route.self) { route in
                         switch route {
                         case .series(let path):
-                            SeriesView(app: app, path: path)
+                            SeriesView(app: app, path: path).ignoresSafeArea()
                         case .seriesList(let path, let title):
-                            SeriesListView(app: app, path: path, title: title)
+                            SeriesListView(app: app, path: path, title: title).ignoresSafeArea()
                         }
                     }
             }

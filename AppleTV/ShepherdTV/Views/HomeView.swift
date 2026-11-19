@@ -68,8 +68,16 @@ private struct HeroView: View {
                 .frame(width: 1160, height: 652)
                 .clipped()
                 .overlay(alignment: .leading) {
-                    LinearGradient(colors: [.appBackground, .appBackground.opacity(0)], startPoint: .leading, endPoint: .trailing)
-                        .frame(width: 480)
+                    // Wide, gradual fade so the title and description stay readable over the art.
+                    LinearGradient(
+                        stops: [
+                            .init(color: .appBackground, location: 0),
+                            .init(color: .appBackground.opacity(0.85), location: 0.4),
+                            .init(color: .appBackground.opacity(0), location: 1),
+                        ],
+                        startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: 760)
                 }
                 .overlay(alignment: .bottom) {
                     LinearGradient(colors: [.appBackground.opacity(0), .appBackground], startPoint: .top, endPoint: .bottom)
