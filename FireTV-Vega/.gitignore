@@ -1,0 +1,22 @@
+*.iml
+*.swp
+.idea
+.DS_Store
+.vscode
+.tmp
+
+dist
+build
+node_modules
+CMakeUserPresets.json
+npm-debug.log
+# Amazon's Shaka Player for Vega (downloaded separately, see README)
+src/shakaplayer/
+# Amazon's licensed Vega/Shaka files (see README); never commit these.
+shaka-rel/
+shaka-rel-*.tar.gz
+src/PlayerInterface.ts
+src/polyfills/
+src/App*Demo.tsx
+src/AppNonAdaptive*.tsx
+src/AppPreBuffering*.tsx

@@ -1,0 +1,16 @@
+{
+    "extends": "@react-native/typescript-config",
+    "compilerOptions": {
+        "types": ["jest", "@amazon-devices/react-native-kepler"], // Override "jest", "react-native" from @react-native/typescript-config
+        // Shared app code lives in ../TV-Shared (see metro.config.js).
+        "baseUrl": ".",
+        "paths": {
+            "@shared/*": ["../TV-Shared/src/*"],
+            "*": ["./node_modules/@types/*", "./node_modules/*"]
+        },
+        "moduleSuffixes": [".kepler", ""]
+    },
+    "include": ["index.js", "src", "test", "../TV-Shared/src", "../TV-Shared/test"],
+    // Other platforms' versions of shared files (e.g. tv.android.ts).
+    "exclude": ["node_modules", "../TV-Shared/src/**/*.android.ts", "../TV-Shared/src/**/*.android.tsx"]
+}

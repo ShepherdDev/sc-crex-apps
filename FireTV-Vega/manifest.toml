@@ -1,0 +1,53 @@
+schema-version = 1
+
+[package]
+title = "Shepherd Church"
+icon = "@image/app_icon.png"
+version = "1.0.0"
+# Floor so local builds pass vpt validate; pass an increasing --build-number for every Appstore upload.
+build-number = 1
+id = "com.shepherdchurch.tvapp"
+
+[os.version]
+min = "2.0"
+target = "2.0"
+
+[needs]
+[[needs.module]]
+id = "/com.amazon.vega.os@IVega_1_2"
+
+[wants]
+[[wants.module]]
+id = "/com.amazon.kepler.net.net_manager@INetManager"
+
+# W3C Media Player (HLS playback): see Amazon's "Media Player Setup" guide.
+[[wants.service]]
+id = "com.amazon.mediametrics.service"
+
+[[wants.privilege]]
+id = "com.amazon.devconf.privilege.accessibility"
+
+[[wants.service]]
+id = "com.amazon.mediabuffer.service"
+
+[[wants.service]]
+id = "com.amazon.mediatransform.service"
+
+[[wants.service]]
+id = "com.amazon.audio.stream"
+
+[[wants.service]]
+id = "com.amazon.audio.control"
+
+[[wants.service]]
+id = "com.amazon.media.server"
+
+[[wants.service]]
+id = "com.amazon.media.playersession.service"
+
+[components]
+[[components.interactive]]
+id = "com.shepherdchurch.tvapp.main"
+runtime-module = "/com.amazon.kepler.runtime.react_native_kepler_4@IReactNativeKepler_0"
+launch-type = "singleton"
+categories = ["com.amazon.category.main"]
